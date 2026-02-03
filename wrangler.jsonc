@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "parham-monfared-site",
+  "compatibility_date": "2025-02-03",
+  "pages_build_output_dir": ".",
+  "observability": {
+    "enabled": true
+  }
+}
