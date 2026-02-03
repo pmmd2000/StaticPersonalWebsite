@@ -1,9 +1,10 @@
 {
   "name": "static-personal-website",
-  "compatibility_date": "2025-02-03",
-  "pages_build_output_dir": "./dist",
-  "observability": {
-    "enabled": true
+  "main": "src/worker.js",
+  "compatibility_date": "2026-02-03",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
   },
   "d1_databases": [
     {
@@ -11,5 +12,8 @@
       "database_name": "contact-submissions",
       "database_id": "41115234-5aec-4b9a-8788-e39021305b92"
     }
-  ]
+  ],
+  "observability": {
+    "enabled": true
+  }
 }
