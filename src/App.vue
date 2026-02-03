@@ -3,6 +3,10 @@
     <!-- Contact Button -->
     <ContactButton @open="showDialog = true" />
     
+    <!-- Background Glow -->
+    <div class="glow-effect" ref="glowEffect"></div>
+
+    
     <!-- Contact Dialog -->
     <ContactDialog 
       :visible="showDialog" 
@@ -19,11 +23,13 @@
       </section>
       <section class="panel third" ref="thirdPanel">
         <div class="social-links">
-          <a href="https://github.com/pmmd2000" target="_blank" class="social-link">
-            github.com/pmmd2000
+          <a href="https://github.com/pmmd2000" target="_blank" class="social-link-wrapper">
+            <img :src="githubLogo" alt="GitHub" class="social-icon" />
+            <span class="social-link">GitHub</span>
           </a>
-          <a href="https://www.linkedin.com/in/parham-monfared" target="_blank" class="social-link">
-            linkedin.com/in/parham-monfared
+          <a href="https://www.linkedin.com/in/parham-monfared" target="_blank" class="social-link-wrapper">
+            <img :src="linkedinLogo" alt="LinkedIn" class="social-icon" />
+            <span class="social-link">LinkedIn</span>
           </a>
         </div>
       </section>
@@ -37,6 +43,9 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import ContactButton from './components/ContactButton.vue'
 import ContactDialog from './components/ContactDialog.vue'
+import githubLogo from './GitHub_Invertocat_White.png'
+import linkedinLogo from './InBug-White.png'
+
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -46,6 +55,8 @@ const firstPanel = ref(null)
 const secondPanel = ref(null)
 const thirdPanel = ref(null)
 const firstText = ref(null)
+const glowEffect = ref(null)
+
 
 let tl = null
 
@@ -64,17 +75,16 @@ onUnmounted(() => {
   ScrollTrigger.getAll().forEach(st => st.kill())
 })
 
+
 function initAnimations() {
   // Calculate total timeline duration needed
-  // We want: first visible (0.5) -> fade out first (1) -> fade in second (1) -> 
-  // hold second (0.5) -> fade out second (1) -> fade in third (1) -> hold third (1)
   // Total: ~6 duration units
   
   tl = gsap.timeline({
     scrollTrigger: {
       trigger: "body",
       start: "top top",
-      end: "+=3000", // 3000px scroll distance
+      end: "+=2000", // Reduced scroll distance to remove extra space
       scrub: 0.8,
       pin: true,
     }
@@ -84,12 +94,21 @@ function initAnimations() {
   // Hold first panel visible at start
   tl.to({}, { duration: 0.5 })
 
-  // Fade out first panel text
-  tl.to(".panel.first .text", {
-    opacity: 0,
+  // Animate Glow: slight pulse
+  tl.to(".glow-effect", { 
+    scale: 1.2, 
+    opacity: 0.8, 
+    duration: 1.5,
+    ease: "power2.inOut" 
+  }, 0)
+
+  // Fade out first panel CONTAINER (fixes z-index blocking issue)
+  // autoAlpha: 0 handles opacity and visibility: hidden
+  tl.to(".panel.first", {
+    autoAlpha: 0,
     y: -50,
     duration: 1
-  })
+  }, 0.5)
 
   // ===== PHASE 2: Second Panel (1.5 - 4 duration) =====
   // Show second panel container
@@ -104,12 +123,21 @@ function initAnimations() {
     { opacity: 1, y: 0, scale: 1, duration: 1 }
   )
 
+  // Animate Glow: shift position/shape for second panel
+  tl.to(".glow-effect", { 
+    scale: 1.5, 
+    width: "800px", 
+    height: "500px",
+    borderRadius: "40%",
+    duration: 2
+  }, "<")
+
   // Hold second panel visible
   tl.to({}, { duration: 0.5 })
 
-  // Fade out second panel text
-  tl.to(".panel.second .text", {
-    opacity: 0,
+  // Fade out second panel container (safety)
+  tl.to(".panel.second", {
+    autoAlpha: 0, 
     scale: 1.05,
     filter: "blur(10px)",
     duration: 1
@@ -121,6 +149,16 @@ function initAnimations() {
     autoAlpha: 1,
     duration: 0.3
   }, "-=0.3")
+  
+  // Animate Glow: large expansion for finale
+  tl.to(".glow-effect", { 
+    scale: 2, 
+    opacity: 1,
+    width: "1000px",
+    height: "1000px",
+    borderRadius: "50%",
+    duration: 2
+  }, "<")
 
   // Animate social links container with explicit fromTo
   tl.fromTo(".social-links",
@@ -131,12 +169,12 @@ function initAnimations() {
   // Animate individual links with explicit fromTo and stagger
   tl.fromTo(".social-link",
     { opacity: 0, y: 20 },
-    { opacity: 0.7, y: 0, stagger: 0.2, duration: 0.6 }  // Target CSS opacity is 0.7
+    { opacity: 1, y: 0, stagger: 0.2, duration: 0.6 } 
   , "-=0.4")
 
   // ===== PHASE 4: Hold at end =====
-  // Extended hold to ensure third panel stays visible at scroll end
-  tl.to({}, { duration: 1 })
+  // Short hold to ensure stability, but reduced to prevent "extra space"
+  tl.to({}, { duration: 0.5 })
 }
 </script>
 
