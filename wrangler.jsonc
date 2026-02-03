@@ -1,12 +1,8 @@
 {
-  // "$schema": "node_modules/wrangler/config-schema.json",
   "name": "static-personal-website",
   "compatibility_date": "2025-02-03",
   "pages_build_output_dir": "./public",
   "observability": {
     "enabled": true
-  },
-  "assets": {
-    "directory": "./public"
   }
 }
