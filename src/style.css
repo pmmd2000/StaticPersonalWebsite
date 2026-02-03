@@ -1,0 +1,306 @@
+:root {
+    --bg-color: #050505;
+    --text-color: #ffffff;
+    --accent-color: #333;
+    --dialog-bg: rgba(20, 20, 20, 0.95);
+    --button-bg: rgba(255, 255, 255, 0.1);
+    --button-hover: rgba(255, 255, 255, 0.2);
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-border: rgba(255, 255, 255, 0.1);
+    --success-color: #4ade80;
+    --error-color: #f87171;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+}
+
+.scroll-container {
+    width: 100%;
+    height: 100vh;
+}
+
+.panel {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.panel.first {
+    opacity: 1;
+    visibility: visible;
+    z-index: 10;
+}
+
+/* Fix: First panel text should be visible from start */
+.panel.first .text {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.text {
+    font-size: 4rem;
+    font-weight: 200;
+    letter-spacing: -0.02em;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+}
+
+.social-link {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: 200;
+    opacity: 0.7;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.social-link:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Subtle grain/gradient for classy look */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Contact Button Styles */
+.contact-button {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    padding: 0.75rem 1.5rem;
+    background: var(--button-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 50px;
+    color: var(--text-color);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.contact-button:hover {
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Dialog Overlay */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.dialog-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Dialog Container */
+.dialog {
+    background: var(--dialog-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    width: 90%;
+    max-width: 450px;
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.dialog-overlay.visible .dialog {
+    transform: scale(1) translateY(0);
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.dialog-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+}
+
+.dialog-close {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+    padding: 0.25rem;
+    line-height: 1;
+}
+
+.dialog-close:hover {
+    opacity: 1;
+}
+
+/* Form Styles */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 400;
+    opacity: 0.7;
+}
+
+.form-input,
+.form-textarea {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    padding: 0.875rem 1rem;
+    color: var(--text-color);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.submit-button {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.submit-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+}
+
+.submit-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Status Messages */
+.status-message {
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.status-message.success {
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: var(--success-color);
+}
+
+.status-message.error {
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    color: var(--error-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .text {
+        font-size: 2.5rem;
+        padding: 0 1rem;
+    }
+
+    .social-link {
+        font-size: 1.2rem;
+    }
+
+    .contact-button {
+        top: 1rem;
+        right: 1rem;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.85rem;
+    }
+
+    .dialog {
+        padding: 1.75rem;
+        margin: 1rem;
+    }
+}

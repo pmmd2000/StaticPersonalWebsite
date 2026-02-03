@@ -1,8 +1,15 @@
 {
   "name": "static-personal-website",
   "compatibility_date": "2025-02-03",
-  // "pages_build_output_dir": "./public",
+  "pages_build_output_dir": "./dist",
   "observability": {
     "enabled": true
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "contact-submissions",
+      "database_id": "41115234-5aec-4b9a-8788-e39021305b92"
+    }
+  ]
 }
