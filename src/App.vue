@@ -65,77 +65,78 @@ onUnmounted(() => {
 })
 
 function initAnimations() {
-  // Create main timeline controlled by scrolling
-  // Extended scroll distance to ensure all panels are reachable
+  // Calculate total timeline duration needed
+  // We want: first visible (0.5) -> fade out first (1) -> fade in second (1) -> 
+  // hold second (0.5) -> fade out second (1) -> fade in third (1) -> hold third (1)
+  // Total: ~6 duration units
+  
   tl = gsap.timeline({
     scrollTrigger: {
       trigger: "body",
       start: "top top",
-      end: "+=4000", // Extended for all animations to complete
-      scrub: 0.5, // Faster scrub for more responsive feel
+      end: "+=3000", // 3000px scroll distance
+      scrub: 0.8,
       pin: true,
     }
   })
 
-  // Phase 1: First text visible, then fades out (0-1.5)
-  // Initial hold so first panel is visible at start
-  tl.to({}, { duration: 0.3 })
+  // ===== PHASE 1: First Panel (0 - 1.5 duration) =====
+  // Hold first panel visible at start
+  tl.to({}, { duration: 0.5 })
 
-  // Fade out the first text
+  // Fade out first panel text
   tl.to(".panel.first .text", {
     opacity: 0,
     y: -50,
-    duration: 0.7
+    duration: 1
   })
 
-  // Phase 2: Second panel appears (1.5-3.5)
-  // Bring in the second panel container
+  // ===== PHASE 2: Second Panel (1.5 - 4 duration) =====
+  // Show second panel container
   tl.to(".panel.second", {
     autoAlpha: 1,
     duration: 0.3
-  }, "-=0.2")
+  }, "-=0.3")
 
-  // Animate second text in
+  // Fade in second panel text
   tl.fromTo(".panel.second .text",
     { opacity: 0, y: 50, scale: 0.95 },
-    { opacity: 1, y: 0, scale: 1, duration: 0.7 }
+    { opacity: 1, y: 0, scale: 1, duration: 1 }
   )
 
-  // Hold the second text visible
+  // Hold second panel visible
   tl.to({}, { duration: 0.5 })
 
-  // Fade out second text
+  // Fade out second panel text
   tl.to(".panel.second .text", {
     opacity: 0,
     scale: 1.05,
     filter: "blur(10px)",
-    duration: 0.7
+    duration: 1
   })
 
-  // Phase 3: Third panel appears and stays (3.5-5)
-  // Bring in third panel
+  // ===== PHASE 3: Third Panel (4 - 6 duration) =====
+  // Show third panel container
   tl.to(".panel.third", {
     autoAlpha: 1,
     duration: 0.3
-  }, "-=0.2")
-
-  // Animate social links container
-  tl.fromTo(".social-links",
-    { opacity: 0, y: 30 },
-    { opacity: 1, y: 0, duration: 0.7 }
-  )
-
-  // Staggered animation for individual links
-  tl.from(".social-link", {
-    y: 20,
-    opacity: 0,
-    stagger: 0.15,
-    duration: 0.4
   }, "-=0.3")
 
-  // Phase 4: Long final hold to keep third panel visible at end of scroll
-  // This is critical - ensures the final state persists
-  tl.to({}, { duration: 1.5 })
+  // Animate social links container with explicit fromTo
+  tl.fromTo(".social-links",
+    { opacity: 0, y: 30 },
+    { opacity: 1, y: 0, duration: 0.8 }
+  )
+
+  // Animate individual links with explicit fromTo and stagger
+  tl.fromTo(".social-link",
+    { opacity: 0, y: 20 },
+    { opacity: 0.7, y: 0, stagger: 0.2, duration: 0.6 }  // Target CSS opacity is 0.7
+  , "-=0.4")
+
+  // ===== PHASE 4: Hold at end =====
+  // Extended hold to ensure third panel stays visible at scroll end
+  tl.to({}, { duration: 1 })
 }
 </script>
 
