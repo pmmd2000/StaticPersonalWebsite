@@ -306,7 +306,6 @@ function initPointer3D() {
       }
     : null
 
-  const root = document.documentElement
   let queued = false
   let nx = 0
   let ny = 0
@@ -330,10 +329,6 @@ function initPointer3D() {
       glow.x(-nx * 55)
       glow.y(-ny * 40)
     }
-
-    // Drives the specular highlight on .text
-    root.style.setProperty('--mx', (50 + nx * 50).toFixed(2) + '%')
-    root.style.setProperty('--my', (50 + ny * 50).toFixed(2) + '%')
   }
 
   const onMove = e => {

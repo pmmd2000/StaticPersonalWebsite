@@ -77,23 +77,10 @@ body {
     transform: translateY(20px);
     transform-style: preserve-3d;
 
-    /* Specular sheen that tracks the cursor (--mx/--my set in App.vue) */
-    background-image: radial-gradient(38rem 38rem at var(--mx, 50%) var(--my, 50%),
-            #ffffff 0%,
-            #f4e9e9 34%,
-            #cfc6c6 70%,
-            #b9b3b3 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-
-    /* Crimson extrusion + bloom: reads as depth, keeps the existing palette */
-    text-shadow:
-        0 1px 0 rgba(139, 0, 0, 0.55),
-        0 2px 2px rgba(139, 0, 0, 0.35),
-        0 10px 34px rgba(139, 0, 0, 0.42),
-        0 0 90px rgba(139, 0, 0, 0.22);
+    /* Flat white, no shadow and no glow. The depth comes from the 3D tilt and
+       the parallax field behind it, not from effects baked into the glyphs. */
+    color: #fff;
+    text-wrap: balance;
 }
 
 .social-links {
@@ -127,7 +114,6 @@ body {
     transform: translateZ(75px) translateY(-5px) scale(1.05);
     background: rgba(255, 255, 255, 0.05);
     /* Subtle background on hover */
-    box-shadow: 0 24px 60px -20px rgba(139, 0, 0, 0.75);
 }
 
 .social-icon {
@@ -145,7 +131,6 @@ body {
 
 .social-link-wrapper:hover .social-link {
     border-bottom: 2px solid rgba(255, 255, 255, 0.8);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
 }
 
 /* Background Glow Effect */
