@@ -21,12 +21,16 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     font-family: 'Outfit', sans-serif;
-    overflow-x: hidden;
+    /* clip, not hidden: `overflow-x: hidden` would force overflow-y to `auto`,
+       making body a nested scroll container that swallows the pin spacing. */
+    overflow-x: clip;
 }
 
 .scroll-container {
     width: 100%;
     height: 100vh;
+    /* Positioning context for the panels, so pinning this element pins them too */
+    position: relative;
 }
 
 .panel {
@@ -40,6 +44,16 @@ body {
     left: 0;
     opacity: 0;
     visibility: hidden;
+    /* 3D viewing frustum for the .tilt layer inside */
+    perspective: 1100px;
+    perspective-origin: 50% 50%;
+}
+
+/* Pointer-driven 3D layer. Kept separate from .panel and .text so it never
+   fights the GSAP scroll timeline, which owns those two. */
+.tilt {
+    transform-style: preserve-3d;
+    will-change: transform;
 }
 
 .panel.first {
@@ -61,6 +75,25 @@ body {
     text-align: center;
     opacity: 0;
     transform: translateY(20px);
+    transform-style: preserve-3d;
+
+    /* Specular sheen that tracks the cursor (--mx/--my set in App.vue) */
+    background-image: radial-gradient(38rem 38rem at var(--mx, 50%) var(--my, 50%),
+            #ffffff 0%,
+            #f4e9e9 34%,
+            #cfc6c6 70%,
+            #b9b3b3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+
+    /* Crimson extrusion + bloom: reads as depth, keeps the existing palette */
+    text-shadow:
+        0 1px 0 rgba(139, 0, 0, 0.55),
+        0 2px 2px rgba(139, 0, 0, 0.35),
+        0 10px 34px rgba(139, 0, 0, 0.42),
+        0 0 90px rgba(139, 0, 0, 0.22);
 }
 
 .social-links {
@@ -78,16 +111,23 @@ body {
     text-decoration: none;
     color: var(--text-color);
     opacity: 1;
-    transition: all 0.3s ease;
+    /* Explicit property list, not `all`: `all` also transitions `visibility`,
+       which left the links inheriting `hidden` for 0.3s after the third panel
+       revealed them — un-clickable, and stuck outright if a frame was missed. */
+    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
     padding: 0.5rem 1rem;
     border-radius: 10px;
+    /* Sits forward of the tilt plane, so it parallaxes against the background */
+    transform: translateZ(45px);
+    transform-style: preserve-3d;
 }
 
 .social-link-wrapper:hover {
     opacity: 1;
-    transform: translateY(-5px) scale(1.05);
+    transform: translateZ(75px) translateY(-5px) scale(1.05);
     background: rgba(255, 255, 255, 0.05);
     /* Subtle background on hover */
+    box-shadow: 0 24px 60px -20px rgba(139, 0, 0, 0.75);
 }
 
 .social-icon {
@@ -129,11 +169,35 @@ body {
     will-change: transform, width, height, opacity;
 }
 
-html,
+/* Two offset lobes inside the blur give the glow volume instead of a flat disc.
+   They inherit the parent's blur, and scale with the GSAP width/height tweens. */
+.glow-effect::before,
+.glow-effect::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.glow-effect::before {
+    inset: 12% 20% 30% 8%;
+    background: radial-gradient(circle, rgba(190, 20, 20, 0.55) 0%, rgba(139, 0, 0, 0.18) 55%, transparent 75%);
+}
+
+.glow-effect::after {
+    inset: 34% 10% 10% 30%;
+    background: radial-gradient(circle, rgba(110, 0, 0, 0.5) 0%, rgba(139, 0, 0, 0.14) 60%, transparent 78%);
+}
+
+html {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+}
+
 body {
     width: 100%;
-    height: 100%;
-    overflow-x: hidden;
+    min-height: 100%;
     position: relative;
     /* Ensure body is relative for fixed children context */
 }
@@ -158,6 +222,78 @@ body::before {
     background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
     pointer-events: none;
     z-index: 1;
+}
+
+/* Film grain. Static, single generated texture — costs nothing to composite. */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== Volumetric mote field =====
+   A deterministic cloud of points at varied Z depths. The whole field rotates
+   with the pointer, so near motes sweep further than far ones — that parallax
+   is what actually reads as three dimensions. */
+.depth-field {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+    perspective: 620px;
+    perspective-origin: 50% 50%;
+}
+
+.depth-field__inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.mote {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    animation: twinkle var(--dur, 6s) ease-in-out var(--delay, 0s) infinite alternate;
+}
+
+@keyframes twinkle {
+    from {
+        opacity: var(--o-min, 0.15);
+    }
+
+    to {
+        opacity: var(--o-max, 0.8);
+    }
+}
+
+/* Respect the OS setting: hold a composed still frame instead of animating */
+@media (prefers-reduced-motion: reduce) {
+    .mote {
+        animation: none;
+        opacity: var(--o-max, 0.6);
+    }
+
+    .social-link-wrapper {
+        transition: none;
+    }
 }
 
 /* Contact Button Styles */
@@ -344,6 +480,13 @@ body::before {
 
 /* Responsive */
 @media (max-width: 768px) {
+
+    /* Thin the mote field: each animated mote is its own composited layer, and
+       mobile GPUs do not need 70 of them. */
+    .mote:nth-child(2n) {
+        display: none;
+    }
+
     .text {
         font-size: 2.5rem;
         padding: 0 1rem;
