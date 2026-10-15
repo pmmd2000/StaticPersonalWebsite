@@ -2,7 +2,7 @@
   <main class="container">
     <SiteHeader />
     <section class="page-intro">
-      <h1 ref="title" class="page-title">Hobbies</h1>
+      <h1 ref="title" class="page-title">Hobbies &amp; Projects</h1>
     </section>
     <HobbyList v-bind="hobbies" variant="full" />
     <SiteFooter />

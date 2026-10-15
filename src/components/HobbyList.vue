@@ -95,10 +95,18 @@ const number = (i) => String(i + 1).padStart(2, '0')
   color: var(--accent);
 }
 
+/* Covers are a fixed 2:1 everywhere (GitHub social previews are 1200x600),
+   so an image is framed the same on the card and on the hobbies page. */
+.art {
+  aspect-ratio: 2 / 1;
+}
+
 /* ── Cards (home) ─────────────────────────────────── */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  /* auto-fill keeps empty tracks, so one card stays a third wide instead of
+     stretching across the row */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 20px;
 }
 
@@ -115,7 +123,6 @@ const number = (i) => String(i + 1).padStart(2, '0')
 }
 
 .card-art {
-  height: 150px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -167,9 +174,9 @@ const number = (i) => String(i + 1).padStart(2, '0')
 }
 
 .entry-art {
-  flex: 1 1 320px;
-  max-width: 460px;
-  aspect-ratio: 4 / 3;
+  flex: 0 1 480px;
+  min-width: min(100%, 320px);
+  align-self: center;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 24px;

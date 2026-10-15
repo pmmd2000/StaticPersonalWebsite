@@ -18,7 +18,7 @@ const hobbyShape = {
     name: z.string().min(1).describe('Name of the hobby'),
     description: z.string().optional().describe('A short paragraph about it'),
     icon: z.string().optional().describe('A single emoji to represent it'),
-    image_url: httpUrl.optional().describe('Optional photo'),
+    image_url: httpUrl.optional().describe('Optional cover image, shown at 2:1 (e.g. 1200x600). A GitHub repo social preview (opengraph.githubassets.com) fits exactly; other ratios are center-cropped'),
     link: httpUrl.optional().describe('Optional related link (profile, gallery, ...)'),
     sort_order: z.number().int().optional().describe('Lower numbers show first; defaults to 0')
 }

@@ -91,7 +91,7 @@ const SCHEMAS = {
       { key: 'name', label: 'Name', required: true },
       { key: 'icon', label: 'Emoji' },
       { key: 'description', label: 'Description', type: 'textarea' },
-      { key: 'image_url', label: 'Image URL', type: 'url' },
+      { key: 'image_url', label: 'Cover image URL (2:1, e.g. 1200×600)', type: 'url' },
       { key: 'link', label: 'Link', type: 'url' },
       { key: 'sort_order', label: 'Sort order (lower first)', type: 'number' }
     ]
@@ -100,7 +100,7 @@ const SCHEMAS = {
 
 const tabs = [
   { key: 'news', label: 'News' },
-  { key: 'hobbies', label: 'Hobbies' },
+  { key: 'hobbies', label: 'Hobbies & Projects' },
   { key: 'contacts', label: 'Messages' }
 ]
 

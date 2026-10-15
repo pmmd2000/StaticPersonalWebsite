@@ -2,7 +2,7 @@
   <main class="container">
     <SiteHeader />
     <section class="page-intro">
-      <h1 ref="title" class="page-title">Tech news I liked</h1>
+      <h1 ref="title" class="page-title">Latest news I follow</h1>
     </section>
     <div class="list">
       <NewsList v-bind="news" variant="full" />

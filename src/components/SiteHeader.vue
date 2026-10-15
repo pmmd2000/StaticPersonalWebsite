@@ -5,7 +5,7 @@
     </RouterLink>
     <nav class="nav" aria-label="Pages">
       <RouterLink to="/news">News</RouterLink>
-      <RouterLink to="/hobbies">Hobbies</RouterLink>
+      <RouterLink to="/hobbies">Hobbies &amp; Projects</RouterLink>
     </nav>
   </header>
 </template>

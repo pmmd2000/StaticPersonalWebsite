@@ -7,8 +7,8 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         { path: '/', component: () => import('./pages/HomePage.vue'), meta: { title: 'Parham Monfared' } },
-        { path: '/news', component: () => import('./pages/NewsPage.vue'), meta: { title: 'Tech news I liked' } },
-        { path: '/hobbies', component: () => import('./pages/HobbiesPage.vue'), meta: { title: 'Hobbies' } },
+        { path: '/news', component: () => import('./pages/NewsPage.vue'), meta: { title: 'Latest news I follow' } },
+        { path: '/hobbies', component: () => import('./pages/HobbiesPage.vue'), meta: { title: 'Hobbies & Projects' } },
         { path: '/admin', component: () => import('./pages/AdminPage.vue'), meta: { title: 'Admin' } },
         { path: '/:pathMatch(.*)*', redirect: '/' }
     ],
