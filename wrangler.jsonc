@@ -26,10 +26,11 @@
       "migrations_dir": "migrations"
     }
   ],
-  // No id: wrangler provisions the namespace on first deploy and reuses it after.
+  // OAuth clients, grants and tokens (hashed) for the MCP server.
   "kv_namespaces": [
     {
-      "binding": "OAUTH_KV"
+      "binding": "OAUTH_KV",
+      "id": "3b82dbe143874d0dbac1bd9d18c9b2c9"
     }
   ],
   "observability": {

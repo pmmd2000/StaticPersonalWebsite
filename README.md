@@ -33,7 +33,7 @@ Repository settings it needs:
 | Secret | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
 | Secret | `ADMIN_PASSWORD` | Long random password for `/admin` and the OAuth sign-in |
 
-The OAuth KV namespace is created automatically on the first deploy. Rotating `ADMIN_PASSWORD` signs out every admin session.
+Rotating `ADMIN_PASSWORD` signs out every admin session.
 
 ## Local development
 
