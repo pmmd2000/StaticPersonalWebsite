@@ -3,7 +3,7 @@
     <span>© {{ year }} Parham Monfared</span>
     <nav aria-label="Footer">
       <RouterLink to="/news">News</RouterLink>
-      <RouterLink to="/hobbies">Hobbies</RouterLink>
+      <RouterLink to="/hobbies">Hobbies &amp; Projects</RouterLink>
       <a href="#" @click.prevent="openContact">Contact</a>
     </nav>
   </footer>

@@ -9,20 +9,20 @@
       </p>
     </section>
 
-    <section id="news" class="block" aria-labelledby="news-h">
+    <section id="hobbies" class="block" aria-labelledby="hob-h">
       <div class="section-head">
-        <h2 id="news-h" class="section-title" data-scramble-h>Tech news I liked</h2>
-        <RouterLink to="/news" class="more-link">More <span aria-hidden="true">→</span></RouterLink>
-      </div>
-      <NewsList v-bind="news" variant="compact" />
-    </section>
-
-    <section id="hobbies" class="block last" aria-labelledby="hob-h">
-      <div class="section-head">
-        <h2 id="hob-h" class="section-title" data-scramble-h>Hobbies</h2>
+        <h2 id="hob-h" class="section-title" data-scramble-h>Hobbies &amp; Projects</h2>
         <RouterLink to="/hobbies" class="more-link">Open page <span aria-hidden="true">→</span></RouterLink>
       </div>
       <HobbyList v-bind="hobbies" variant="cards" />
+    </section>
+
+    <section id="news" class="block last" aria-labelledby="news-h">
+      <div class="section-head">
+        <h2 id="news-h" class="section-title" data-scramble-h>Latest news I follow</h2>
+        <RouterLink to="/news" class="more-link">More <span aria-hidden="true">→</span></RouterLink>
+      </div>
+      <NewsList v-bind="news" variant="compact" />
     </section>
 
     <SiteFooter />
