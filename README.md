@@ -29,7 +29,7 @@ Workers Builds settings (Cloudflare dashboard → Worker → Settings → Build)
 
 | Setting | Value |
 | --- | --- |
-| Build command | `npm ci` |
+| Build command | `npm run build` |
 | Deploy command | `npm run deploy` (builds, applies pending D1 migrations, deploys) |
 | Non-production branch deploy command | `npx wrangler versions upload` (default; previews never run migrations) |
 
