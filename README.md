@@ -13,7 +13,7 @@ Personal site: a hero (name, links, intro), the latest three tech news items I l
 | `src/worker/authorize.js` | OAuth sign-in + consent page at `/authorize` |
 | `src/worker/api.js` | Public content API, contact form, admin API |
 | `src/worker/content.js` | Shared data layer (validation + SQL) used by MCP and admin |
-| `migrations/` | D1 schema, applied automatically on deploy |
+| `migrations/` | D1 schema, applied by `npm run deploy` |
 
 ## MCP server
 
@@ -23,17 +23,17 @@ Tools: `list_news`, `add_news`, `update_news`, `delete_news`, `list_hobbies`, `a
 
 ## Deployment
 
-GitHub Actions only. `CI` builds and dry-runs the Worker on every push and PR; `Deploy` runs after CI passes on `main` (or by hand from the Actions tab), applies D1 migrations and deploys the Worker. Merging to `main` is the approval step.
+Cloudflare's Git integration (Workers Builds) deploys `main` to production and uploads a preview version for every other branch. GitHub Actions only runs `CI` (build + Worker dry-run) on pushes and PRs; merging to `main` is the approval step.
 
-Repository settings it needs:
+Workers Builds settings (Cloudflare dashboard → Worker → Settings → Build):
 
-| Kind | Name | Value |
-| --- | --- | --- |
-| Secret | `CLOUDFLARE_API_TOKEN` | API token with *Workers Scripts: Edit*, *Workers KV Storage: Edit*, *D1: Edit* |
-| Secret | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
-| Secret | `ADMIN_PASSWORD` | Long random password for `/admin` and the OAuth sign-in |
+| Setting | Value |
+| --- | --- |
+| Build command | `npm ci` |
+| Deploy command | `npm run deploy` (builds, applies pending D1 migrations, deploys) |
+| Non-production branch deploy command | `npx wrangler versions upload` (default; previews never run migrations) |
 
-Rotating `ADMIN_PASSWORD` signs out every admin session.
+Runtime secret, set once: `npx wrangler secret put ADMIN_PASSWORD` (long random value; it unlocks `/admin` and the MCP OAuth sign-in, and rotating it signs out every admin session). The current value is in Bitwarden as "parhammonfared.com admin".
 
 ## Local development
 
