@@ -32,10 +32,6 @@
       "binding": "OAUTH_KV"
     }
   ],
-  "vars": {
-    // Overridden at deploy time from the SITE_URL repository variable.
-    "SITE_URL": "http://localhost:8787"
-  },
   "observability": {
     "enabled": true
   }

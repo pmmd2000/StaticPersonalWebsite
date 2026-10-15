@@ -20,15 +20,15 @@ const defaultHandler = {
     }
 }
 
-// The provider is bound to the canonical site URL, which only exists at
-// request time (env), so build it once per origin and reuse it.
-let provider = null
-let providerOrigin = null
+// OAuth binds every token to a canonical resource URL. It is taken from the
+// origin the request arrived on (Cloudflare only routes hostnames attached to
+// this Worker), so apex, www and localhost each get their own provider and
+// nothing about the domain has to be configured.
+const providers = new Map()
 
-function getProvider(env) {
-    const origin = new URL(env.SITE_URL).origin
-    if (provider && providerOrigin === origin) return provider
-    provider = new OAuthProvider({
+function getProvider(origin) {
+    if (providers.has(origin)) return providers.get(origin)
+    const provider = new OAuthProvider({
         apiRoute: '/mcp',
         apiHandler: mcpHandler,
         defaultHandler,
@@ -44,12 +44,12 @@ function getProvider(env) {
         },
         clientIdMetadataDocumentEnabled: true
     })
-    providerOrigin = origin
+    providers.set(origin, provider)
     return provider
 }
 
 export default {
     fetch(request, env, ctx) {
-        return getProvider(env).fetch(request, env, ctx)
+        return getProvider(new URL(request.url).origin).fetch(request, env, ctx)
     }
 }

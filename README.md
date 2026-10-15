@@ -17,7 +17,7 @@ Personal site: a hero (name, links, intro), the latest three tech news items I l
 
 ## MCP server
 
-Endpoint: `https://<SITE_URL>/mcp`. Add it as a remote MCP server in any client (Claude, Cursor, VS Code, …). The client discovers OAuth via `/.well-known/oauth-protected-resource/mcp`, registers itself (Dynamic Client Registration or Client ID Metadata Documents), and sends you to `/authorize`, where you sign in with the admin password and approve it.
+Endpoint: `https://parhammonfared.com/mcp` (any hostname routed to the Worker works; OAuth is bound to the one you use). Add it as a remote MCP server in any client (Claude, Cursor, VS Code, …). The client discovers OAuth via `/.well-known/oauth-protected-resource/mcp`, registers itself (Dynamic Client Registration or Client ID Metadata Documents), and sends you to `/authorize`, where you sign in with the admin password and approve it.
 
 Tools: `list_news`, `add_news`, `update_news`, `delete_news`, `list_hobbies`, `add_hobby`, `update_hobby`, `delete_hobby`, `list_contact_messages`.
 
@@ -32,7 +32,6 @@ Repository settings it needs:
 | Secret | `CLOUDFLARE_API_TOKEN` | API token with *Workers Scripts: Edit*, *Workers KV Storage: Edit*, *D1: Edit* |
 | Secret | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
 | Secret | `ADMIN_PASSWORD` | Long random password for `/admin` and the OAuth sign-in |
-| Variable | `SITE_URL` | `https://parhammonfared.com` |
 
 The OAuth KV namespace is created automatically on the first deploy. Rotating `ADMIN_PASSWORD` signs out every admin session.
 
