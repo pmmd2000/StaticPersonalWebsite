@@ -1,327 +1,172 @@
+/* Scaffold theme — placeholder until the final design lands. Everything
+   visual hangs off these tokens so a redesign is mostly a token swap. */
 :root {
-    --bg-color: #050505;
-    --text-color: #ffffff;
-    --accent-color: #333;
-    --dialog-bg: rgba(20, 20, 20, 0.95);
-    --button-bg: rgba(255, 255, 255, 0.1);
-    --button-hover: rgba(255, 255, 255, 0.2);
-    --input-bg: rgba(255, 255, 255, 0.05);
-    --input-border: rgba(255, 255, 255, 0.1);
-    --success-color: #4ade80;
-    --error-color: #f87171;
+    --bg: #07070a;
+    --bg-raised: #0f0f14;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --fg: #eceaf2;
+    --muted: #9a98a8;
+    --accent: #c8344a;
+    --accent-2: #6b5cff;
+    --radius: 16px;
+    --gutter: clamp(16px, 4vw, 40px);
+    --max: 1120px;
+    --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
-}
-
-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Outfit', sans-serif;
-    /* clip, not hidden: `overflow-x: hidden` would force overflow-y to `auto`,
-       making body a nested scroll container that swallows the pin spacing. */
-    overflow-x: clip;
-}
-
-.scroll-container {
-    width: 100%;
-    height: 100vh;
-    /* Positioning context for the panels, so pinning this element pins them too */
-    position: relative;
-}
-
-.panel {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    visibility: hidden;
-    /* 3D viewing frustum for the .tilt layer inside */
-    perspective: 1100px;
-    perspective-origin: 50% 50%;
-}
-
-/* Pointer-driven 3D layer. Kept separate from .panel and .text so it never
-   fights the GSAP scroll timeline, which owns those two. */
-.tilt {
-    transform-style: preserve-3d;
-    will-change: transform;
-}
-
-.panel.first {
-    opacity: 1;
-    visibility: visible;
-    z-index: 10;
-}
-
-/* Fix: First panel text should be visible from start */
-.panel.first .text {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.text {
-    font-size: 4rem;
-    font-weight: 200;
-    letter-spacing: -0.02em;
-    text-align: center;
-    opacity: 0;
-    transform: translateY(20px);
-    transform-style: preserve-3d;
-
-    /* Flat white, no shadow and no glow. The depth comes from the 3D tilt and
-       the parallax field behind it, not from effects baked into the glyphs. */
-    color: #fff;
-    text-wrap: balance;
-}
-
-.social-links {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    text-align: center;
-}
-
-/* Social Links Enhancements */
-.social-link-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    text-decoration: none;
-    color: var(--text-color);
-    opacity: 1;
-    /* Explicit property list, not `all`: `all` also transitions `visibility`,
-       which left the links inheriting `hidden` for 0.3s after the third panel
-       revealed them — un-clickable, and stuck outright if a frame was missed. */
-    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
-    /* Sits forward of the tilt plane, so it parallaxes against the background */
-    transform: translateZ(45px);
-    transform-style: preserve-3d;
-}
-
-.social-link-wrapper:hover {
-    opacity: 1;
-    transform: translateZ(75px) translateY(-5px) scale(1.05);
-    background: rgba(255, 255, 255, 0.05);
-    /* Subtle background on hover */
-}
-
-.social-icon {
-    width: 3.5rem;
-    /* ~56px */
-    height: auto;
-    object-fit: contain;
-}
-
-.social-link {
-    font-size: 3rem;
-    font-weight: 400;
-    border-bottom: 2px solid transparent;
-}
-
-.social-link-wrapper:hover .social-link {
-    border-bottom: 2px solid rgba(255, 255, 255, 0.8);
-}
-
-/* Background Glow Effect */
-.glow-effect {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(139, 0, 0, 0.6) 0%, rgba(139, 0, 0, 0.2) 40%, transparent 70%);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 1;
-    filter: blur(80px);
-
-    /* Constraint to prevent scroll overflow */
-    max-width: 100vw;
-    max-height: 100vh;
-    box-sizing: border-box;
-    will-change: transform, width, height, opacity;
-}
-
-/* Two offset lobes inside the blur give the glow volume instead of a flat disc.
-   They inherit the parent's blur, and scale with the GSAP width/height tweens. */
-.glow-effect::before,
-.glow-effect::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.glow-effect::before {
-    inset: 12% 20% 30% 8%;
-    background: radial-gradient(circle, rgba(190, 20, 20, 0.55) 0%, rgba(139, 0, 0, 0.18) 55%, transparent 75%);
-}
-
-.glow-effect::after {
-    inset: 34% 10% 10% 30%;
-    background: radial-gradient(circle, rgba(110, 0, 0, 0.5) 0%, rgba(139, 0, 0, 0.14) 60%, transparent 78%);
 }
 
 html {
-    width: 100%;
-    min-height: 100%;
-    overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
 body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 400 16px/1.6 var(--font);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+.container {
     width: 100%;
-    min-height: 100%;
-    position: relative;
-    /* Ensure body is relative for fixed children context */
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
 }
 
-/* Ensure content is above glow */
-.panel {
-    z-index: 5;
+/* ── Section scaffolding ───────────────────────────── */
+.section {
+    padding: clamp(48px, 8vh, 96px) 0;
 }
 
-.panel.first {
-    z-index: 10;
+.section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
-/* Subtle grain/gradient for classy look */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 1;
+.eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
 }
 
-/* Film grain. Static, single generated texture — costs nothing to composite. */
-body::after {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 3;
-    opacity: 0.045;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+.section-title {
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: 700;
+    margin: 0;
 }
 
-/* ===== Volumetric mote field =====
-   A deterministic cloud of points at varied Z depths. The whole field rotates
-   with the pointer, so near motes sweep further than far ones — that parallax
-   is what actually reads as three dimensions. */
-.depth-field {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    pointer-events: none;
-    overflow: hidden;
-    perspective: 620px;
-    perspective-origin: 50% 50%;
+.more-link {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--line-strong);
+    padding: 6px 14px;
+    border-radius: 999px;
+    transition: color 0.2s, border-color 0.2s;
 }
 
-.depth-field__inner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    will-change: transform;
+.more-link:hover {
+    color: var(--fg);
+    border-color: var(--fg);
 }
 
-.mote {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    border-radius: 50%;
-    animation: twinkle var(--dur, 6s) ease-in-out var(--delay, 0s) infinite alternate;
+.empty {
+    color: var(--muted);
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
 }
 
-@keyframes twinkle {
-    from {
-        opacity: var(--o-min, 0.15);
-    }
-
-    to {
-        opacity: var(--o-max, 0.8);
-    }
+/* ── Page header (sub-pages) ───────────────────────── */
+.page-header {
+    padding: 28px 0 0;
 }
 
-/* Respect the OS setting: hold a composed still frame instead of animating */
-@media (prefers-reduced-motion: reduce) {
-    .mote {
-        animation: none;
-        opacity: var(--o-max, 0.6);
-    }
-
-    .social-link-wrapper {
-        transition: none;
-    }
+.back-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
 }
 
-/* Contact Button Styles */
-.contact-button {
-    position: fixed;
-    top: 2rem;
-    right: 2rem;
-    z-index: 1000;
-    padding: 0.75rem 1.5rem;
-    background: var(--button-bg);
-    border: 1px solid var(--input-border);
-    border-radius: 50px;
-    color: var(--text-color);
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 400;
+.back-link:hover {
+    color: var(--fg);
+}
+
+/* ── Buttons ───────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--fg);
+    font: 500 15px var(--font);
+    text-decoration: none;
     cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 
-.contact-button:hover {
-    background: var(--button-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+.btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--fg);
+    transform: translateY(-1px);
 }
 
-/* Dialog Overlay */
+.btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn.primary:hover {
+    background: #d9415a;
+}
+
+.btn.danger {
+    color: #ff7b8a;
+}
+
+.btn img {
+    width: 18px;
+    height: 18px;
+}
+
+/* ── Contact dialog ────────────────────────────────── */
 .dialog-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
+    inset: 0;
+    z-index: 100;
     display: flex;
-    justify-content: center;
     align-items: center;
-    z-index: 2000;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.25s, visibility 0.25s;
 }
 
 .dialog-overlay.visible {
@@ -329,89 +174,79 @@ body::after {
     visibility: visible;
 }
 
-/* Dialog Container */
 .dialog {
-    background: var(--dialog-bg);
-    border: 1px solid var(--input-border);
-    border-radius: 20px;
-    padding: 2.5rem;
-    width: 90%;
-    max-width: 450px;
-    transform: scale(0.9) translateY(20px);
-    transition: all 0.3s ease;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 460px;
+    background: var(--bg-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    padding: 28px;
+    transform: translateY(12px);
+    transition: transform 0.25s;
 }
 
 .dialog-overlay.visible .dialog {
-    transform: scale(1) translateY(0);
+    transform: none;
 }
 
 .dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
 }
 
 .dialog-title {
-    font-size: 1.5rem;
-    font-weight: 400;
-    letter-spacing: -0.02em;
+    margin: 0;
+    font-size: 22px;
 }
 
 .dialog-close {
-    background: transparent;
-    border: none;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
-    padding: 0.25rem;
+    background: none;
+    border: 0;
+    color: var(--muted);
+    font-size: 28px;
     line-height: 1;
+    cursor: pointer;
 }
 
 .dialog-close:hover {
-    opacity: 1;
+    color: var(--fg);
 }
 
-/* Form Styles */
-.contact-form {
+.contact-form,
+.stack {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 14px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 6px;
 }
 
 .form-label {
-    font-size: 0.85rem;
-    font-weight: 400;
-    opacity: 0.7;
+    font-size: 13px;
+    color: var(--muted);
 }
 
 .form-input,
 .form-textarea {
-    background: var(--input-bg);
-    border: 1px solid var(--input-border);
+    width: 100%;
+    padding: 10px 12px;
+    background: #0b0b10;
+    border: 1px solid var(--line-strong);
     border-radius: 10px;
-    padding: 0.875rem 1rem;
-    color: var(--text-color);
-    font-family: 'Outfit', sans-serif;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    outline: none;
+    color: var(--fg);
+    font: inherit;
 }
 
 .form-input:focus,
 .form-textarea:focus {
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+    border-color: var(--accent);
 }
 
 .form-textarea {
@@ -420,76 +255,41 @@ body::after {
 }
 
 .submit-button {
-    background: var(--text-color);
-    color: var(--bg-color);
-    border: none;
+    padding: 12px;
+    border: 0;
     border-radius: 10px;
-    padding: 1rem;
-    font-family: 'Outfit', sans-serif;
-    font-size: 1rem;
-    font-weight: 400;
+    background: var(--accent);
+    color: #fff;
+    font: 500 15px var(--font);
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 0.5rem;
-}
-
-.submit-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
 }
 
 .submit-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    opacity: 0.6;
+    cursor: default;
 }
 
-/* Status Messages */
 .status-message {
-    padding: 0.875rem 1rem;
+    font-size: 14px;
+    padding: 10px 12px;
     border-radius: 10px;
-    font-size: 0.9rem;
-    text-align: center;
 }
 
 .status-message.success {
-    background: rgba(74, 222, 128, 0.1);
-    border: 1px solid rgba(74, 222, 128, 0.3);
-    color: var(--success-color);
+    background: rgba(70, 200, 120, 0.12);
+    color: #7be0a4;
 }
 
 .status-message.error {
-    background: rgba(248, 113, 113, 0.1);
-    border: 1px solid rgba(248, 113, 113, 0.3);
-    color: var(--error-color);
+    background: rgba(255, 90, 110, 0.12);
+    color: #ff8f9c;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-
-    /* Thin the mote field: each animated mote is its own composited layer, and
-       mobile GPUs do not need 70 of them. */
-    .mote:nth-child(2n) {
-        display: none;
-    }
-
-    .text {
-        font-size: 2.5rem;
-        padding: 0 1rem;
-    }
-
-    .social-link {
-        font-size: 1.2rem;
-    }
-
-    .contact-button {
-        top: 1rem;
-        right: 1rem;
-        padding: 0.6rem 1.2rem;
-        font-size: 0.85rem;
-    }
-
-    .dialog {
-        padding: 1.75rem;
-        margin: 1rem;
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
     }
 }
