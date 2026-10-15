@@ -11,7 +11,7 @@
       class="card"
       data-reveal
     >
-      <div class="card-art art">
+      <div class="card-art art" :class="{ 'has-cover': hobby.image_url }" :style="coverVar(hobby)">
         <img v-if="hobby.image_url" :src="hobby.image_url" alt="" loading="lazy" />
         <span v-else-if="hobby.icon" class="icon" aria-hidden="true">{{ hobby.icon }}</span>
         <HobbyMotif v-else size="150px" :stroke-width="1.5" />
@@ -61,6 +61,9 @@ const root = ref(null)
 useReveal(root, toRef(props, 'items'))
 
 const number = (i) => String(i + 1).padStart(2, '0')
+
+// Feeds the cover to CSS for the blurred fill behind it on home cards.
+const coverVar = (h) => (h.image_url ? { '--cover': `url(${JSON.stringify(h.image_url)})` } : null)
 </script>
 
 <style scoped>
@@ -101,18 +104,17 @@ const number = (i) => String(i + 1).padStart(2, '0')
   aspect-ratio: 2 / 1;
 }
 
-/* ── Cards (home) ─────────────────────────────────── */
+/* ── Cards (home): one full-width row per project, cover on the left ── */
 .cards {
-  display: grid;
-  /* auto-fill keeps empty tracks, so one card stays a third wide instead of
-     stretching across the row */
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  align-items: center;
   color: var(--fg);
   text-decoration: none;
   background: var(--panel);
@@ -123,13 +125,34 @@ const number = (i) => String(i + 1).padStart(2, '0')
 }
 
 .card-art {
-  border-bottom: 1px solid var(--line);
+  position: relative;
+  align-self: stretch;
+  /* the cell matches the row's height; the cover inside stays 2:1 */
+  aspect-ratio: auto;
+  min-height: 210px;
+  border-right: 1px solid var(--line);
+}
+
+.card-art img {
+  position: relative;
+  height: auto;
+  aspect-ratio: 2 / 1;
+}
+
+/* Spare height above/below the cover shows a blurred, dimmed copy of it. */
+.card-art.has-cover::before {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  background: var(--cover) center / cover;
+  filter: blur(22px) brightness(0.45) saturate(1.2);
 }
 
 .card-body {
-  padding: 24px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -146,9 +169,10 @@ const number = (i) => String(i + 1).padStart(2, '0')
   font-size: 0.95rem;
   line-height: 1.55;
   color: var(--muted);
-  /* the full text lives on /hobbies; cards stay a teaser */
+  /* generous, but a runaway description can't blow up the row; the full
+     text is always on /hobbies */
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 8;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -161,6 +185,21 @@ const number = (i) => String(i + 1).padStart(2, '0')
 
 .card:hover .art {
   color: var(--green);
+}
+
+@media (max-width: 720px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+  .card-art {
+    aspect-ratio: 2 / 1;
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-body {
+    padding: 22px;
+  }
 }
 
 /* ── Entries (hobbies page) ───────────────────────── */
