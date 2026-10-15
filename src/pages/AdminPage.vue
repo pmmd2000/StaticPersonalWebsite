@@ -2,7 +2,7 @@
   <main class="container admin">
     <header class="admin-head">
       <RouterLink to="/" class="back-link">← Site</RouterLink>
-      <button v-if="authed" class="btn" @click="logout">Sign out</button>
+      <button v-if="authed" class="pill" @click="logout">Sign out</button>
     </header>
 
     <p v-if="authed === null" class="muted">Loading…</p>
@@ -47,7 +47,7 @@
           <p v-if="formError" class="status-message error">{{ formError }}</p>
           <div class="row">
             <button class="submit-button">{{ editingId ? 'Save changes' : 'Add' }}</button>
-            <button v-if="editingId" type="button" class="btn" @click="resetDraft">Cancel</button>
+            <button v-if="editingId" type="button" class="pill" @click="resetDraft">Cancel</button>
           </div>
         </form>
 
@@ -59,8 +59,8 @@
               <span class="muted">{{ row.source || row.description || '' }}</span>
             </div>
             <div class="row">
-              <button class="btn" @click="edit(row)">Edit</button>
-              <button class="btn danger" @click="remove(row)">Delete</button>
+              <button class="pill" @click="edit(row)">Edit</button>
+              <button class="pill danger" @click="remove(row)">Delete</button>
             </div>
           </article>
         </div>
@@ -196,16 +196,19 @@ async function remove(row) {
 }
 
 .card {
-  background: var(--bg-raised);
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 20px;
   padding: 20px;
 }
 
 .card h1,
 .card h2 {
   margin: 0;
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
 }
 
 .login {
@@ -223,7 +226,8 @@ async function remove(row) {
 }
 
 code {
-  color: var(--fg);
+  color: var(--accent);
+  font-family: var(--font-mono);
 }
 
 .tabs {
@@ -239,7 +243,9 @@ code {
   border-bottom: 2px solid transparent;
   padding: 10px 14px;
   color: var(--muted);
-  font: 500 15px var(--font);
+  font: 500 0.85rem var(--font-mono);
+  letter-spacing: 0.04em;
+  min-height: 44px;
   cursor: pointer;
 }
 

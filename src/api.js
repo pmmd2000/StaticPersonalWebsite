@@ -24,6 +24,18 @@ export const admin = {
     contacts: () => request('/api/admin/contacts')
 }
 
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+// "13 OCT" or "13 OCT 2026"
+export function formatStamp(value, withYear = true) {
+    if (!value) return ''
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    const stamp = `${day} ${MONTHS[date.getUTCMonth()]}`
+    return withYear ? `${stamp} ${date.getUTCFullYear()}` : stamp
+}
+
 export function formatDate(value) {
     if (!value) return ''
     const date = new Date(value)

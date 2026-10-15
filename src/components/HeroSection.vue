@@ -1,191 +1,178 @@
 <template>
-  <section class="hero">
-    <div class="hero-bg" aria-hidden="true">
-      <span class="orb orb-a"></span>
-      <span class="orb orb-b"></span>
-      <span class="grid"></span>
+  <section ref="hero" class="hero" aria-label="Introduction">
+    <div class="dots" aria-hidden="true">
+      <span v-for="i in DOTS" :key="i" ref="dots" class="grid-dot"></span>
     </div>
 
-    <div class="container hero-inner">
-      <h1 class="name" aria-label="Parham Monfared">
-        <span v-for="(word, w) in words" :key="w" class="word" aria-hidden="true">
-          <span
-            v-for="(ch, i) in word.chars"
-            :key="i"
-            class="letter"
-            :style="{ '--i': word.offset + i }"
-          >{{ ch }}</span>
-        </span>
-      </h1>
+    <h1 ref="name" class="name">Parham<br />Monfared</h1>
 
-      <nav class="links" aria-label="Elsewhere">
-        <a class="btn" href="https://github.com/pmmd2000" target="_blank" rel="noopener">
-          <img :src="githubLogo" alt="" /> GitHub
-        </a>
-        <a class="btn" href="https://www.linkedin.com/in/parham-monfared" target="_blank" rel="noopener">
-          <img :src="linkedinLogo" alt="" /> LinkedIn
-        </a>
-        <button class="btn primary" type="button" @click="openContact">Contact me</button>
-      </nav>
-
-      <p class="intro">I'm Parham, a platform engineer, living in the UK.</p>
+    <div class="links">
+      <a class="pill" href="https://github.com/pmmd2000" target="_blank" rel="noopener">
+        GitHub <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <span class="dot" aria-hidden="true"></span>
+      <a class="pill" href="https://www.linkedin.com/in/parham-monfared" target="_blank" rel="noopener">
+        LinkedIn <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <span class="dot" aria-hidden="true"></span>
+      <button class="pill primary" type="button" @click="openContact">
+        Contact me <span class="arrow" aria-hidden="true">→</span>
+      </button>
     </div>
   </section>
 </template>
 
 <script setup>
-import { inject } from 'vue'
-import githubLogo from '../GitHub_Invertocat_White.png'
-import linkedinLogo from '../InBug-White.png'
+import { inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { gsap, prefersReducedMotion, SplitText } from '../motion.js'
 
 const openContact = inject('openContact')
-// Letters animate individually; words stay unbreakable so the name only
-// wraps between "Parham" and "Monfared".
-let offset = 0
-const words = 'Parham Monfared'.split(' ').map((word) => {
-  const entry = { chars: [...word], offset }
-  offset += word.length
-  return entry
+
+// 32 columns x 14 rows of dots behind the name; they swell near the cursor.
+const DOTS = 448
+const hero = ref(null)
+const name = ref(null)
+const dots = ref([])
+
+let cleanup = () => {}
+
+onMounted(async () => {
+  if (prefersReducedMotion()) return
+  await document.fonts?.ready
+
+  // Name: characters rise out of a mask, then fill and thicken near the cursor.
+  const split = new SplitText(name.value, { type: 'words,chars', mask: 'words', charsClass: 'ch' })
+  const chars = split.chars
+  gsap.set(chars, { '--k': 0, '--f': 0 })
+  gsap.from(chars, { yPercent: 115, duration: 0.9, ease: 'expo.out', stagger: 0.03 })
+
+  const dotSetters = dots.value.map((d) => ({
+    scale: gsap.quickTo(d, 'scale', { duration: 0.5, ease: 'power3' }),
+    opacity: gsap.quickTo(d, 'opacity', { duration: 0.5, ease: 'power3' })
+  }))
+
+  let dotPos = []
+  let charPos = []
+  const centre = (el, box) => {
+    const r = el.getBoundingClientRect()
+    return [r.left - box.left + r.width / 2, r.top - box.top + r.height / 2]
+  }
+  const measure = () => {
+    const box = hero.value.getBoundingClientRect()
+    dotPos = dots.value.map((d) => centre(d, box))
+    charPos = chars.map((c) => centre(c, box))
+  }
+  // Measure once the entrance has settled, so the chars are in place.
+  const measureTimer = setTimeout(measure, 1000)
+
+  const onMove = (e) => {
+    if (!charPos.length) return
+    const box = hero.value.getBoundingClientRect()
+    const x = e.clientX - box.left
+    const y = e.clientY - box.top
+    dotPos.forEach(([dx, dy], i) => {
+      const t = Math.max(0, 1 - Math.hypot(dx - x, dy - y) / 170)
+      dotSetters[i].scale(1 + 2.4 * t)
+      dotSetters[i].opacity(0.16 + 0.84 * t)
+    })
+    charPos.forEach(([cx, cy], i) => {
+      const t = Math.max(0, 1 - Math.hypot(cx - x, cy - y) / 280)
+      gsap.to(chars[i], {
+        fontVariationSettings: `"wght" ${Math.round(500 + 300 * t)}, "opsz" 96`,
+        '--k': t,
+        '--f': t * 0.9,
+        duration: 0.45,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      })
+    })
+  }
+  const onLeave = () => {
+    dotSetters.forEach((s) => {
+      s.scale(1)
+      s.opacity(0.16)
+    })
+    gsap.to(chars, { fontVariationSettings: '"wght" 500, "opsz" 96', '--k': 0, '--f': 0, duration: 0.6, overwrite: 'auto' })
+  }
+
+  hero.value.addEventListener('pointermove', onMove)
+  hero.value.addEventListener('pointerleave', onLeave)
+  window.addEventListener('resize', measure)
+
+  cleanup = () => {
+    clearTimeout(measureTimer)
+    hero.value?.removeEventListener('pointermove', onMove)
+    hero.value?.removeEventListener('pointerleave', onLeave)
+    window.removeEventListener('resize', measure)
+    split.revert()
+  }
 })
+
+onBeforeUnmount(() => cleanup())
 </script>
 
 <style scoped>
 .hero {
   position: relative;
-  min-height: min(88vh, 820px);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.hero-inner {
+  min-height: 560px;
+  padding: 56px 0 72px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 28px;
+  justify-content: center;
 }
 
-/* Name: letters rise out of a blur one after another, then an accent rule
-   draws in underneath. */
+.dots {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(32, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  place-items: center;
+  pointer-events: none;
+}
+
+.grid-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: 0.16;
+}
+
 .name {
   position: relative;
   margin: 0;
-  padding-bottom: 18px;
-  font-size: clamp(48px, 11vw, 132px);
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: #f6f4fa;
-  text-shadow: 0 0 60px rgba(200, 52, 74, 0.35);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variation-settings: 'wght' 500, 'opsz' 96;
+  font-size: clamp(3.6rem, 12.5vw, 11rem);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--stroke);
 }
 
-.name::after {
-  content: '';
-  position: absolute;
-  left: 0.04em;
-  bottom: 0;
-  height: 3px;
-  width: 22%;
-  border-radius: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  transform: scaleX(0);
-  transform-origin: left;
-  animation: draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.9s forwards;
-}
-
-.word {
-  display: inline-block;
-  white-space: nowrap;
-  margin-right: 0.22em;
-}
-
-.letter {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(0.35em);
-  filter: blur(8px);
-  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
-  animation-delay: calc(var(--i) * 45ms + 150ms);
-}
-
-@keyframes rise {
-  to { opacity: 1; transform: none; filter: none; }
-}
-
-@keyframes draw {
-  to { transform: scaleX(1); }
+/* SplitText chars: --f fills with the accent, --k tints the outline. */
+.name :deep(.ch) {
+  color: color-mix(in srgb, var(--accent) calc(var(--f, 0) * 100%), transparent);
+  -webkit-text-stroke-color: color-mix(in srgb, var(--accent) calc(var(--k, 0) * 100%), var(--stroke));
 }
 
 .links {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
-  opacity: 0;
-  animation: fade 0.8s ease 0.9s forwards;
+  margin-top: 44px;
 }
 
-.intro {
-  margin: 0;
-  font-size: clamp(18px, 2.2vw, 24px);
-  color: var(--muted);
-  font-weight: 200;
-  opacity: 0;
-  animation: fade 0.8s ease 1.1s forwards;
-}
-
-@keyframes fade {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
-}
-
-/* Background: two drifting colour fields over a faint grid. */
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-}
-
-.orb {
-  position: absolute;
-  width: 55vmax;
-  height: 55vmax;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.35;
-}
-
-.orb-a {
-  background: var(--accent);
-  top: -30vmax;
-  right: -18vmax;
-  animation: drift 22s ease-in-out infinite alternate;
-}
-
-.orb-b {
-  background: var(--accent-2);
-  bottom: -38vmax;
-  left: -20vmax;
-  opacity: 0.22;
-  animation: drift 26s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes drift {
-  to { transform: translate(-6vmax, 5vmax) scale(1.08); }
-}
-
-.grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse at 30% 50%, #000 0%, transparent 70%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .letter, .links, .intro { opacity: 1; transform: none; filter: none; }
-  .name::after { transform: none; }
+@media (max-width: 560px) {
+  .hero {
+    min-height: 460px;
+  }
+  .links .dot {
+    display: none;
+  }
 }
 </style>
