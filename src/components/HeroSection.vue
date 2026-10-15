@@ -1,5 +1,8 @@
 <template>
-  <section ref="hero" class="hero" aria-label="Introduction">
+  <section ref="hero" class="hero" :class="{ touch }" aria-label="Introduction">
+    <!-- Touch screens: a fixed strip of light the name scrolls through -->
+    <div ref="band" class="light-band" aria-hidden="true"></div>
+
     <div class="dots" aria-hidden="true">
       <span v-for="i in DOTS" :key="i" ref="dots" class="grid-dot"></span>
     </div>
@@ -33,6 +36,14 @@ const DOTS = 448
 const hero = ref(null)
 const name = ref(null)
 const dots = ref([])
+const band = ref(null)
+
+// With no hover to reveal the name, touch screens get a fixed horizontal
+// light: the page scrolls under it and whatever passes through lights up.
+const touch = ref(false)
+const BAND_AT = 0.26 // of the viewport height, from the top
+const BAND_REACH = 130 // px from the band's centre line to where its light ends
+const smooth = (x) => x * x * (3 - 2 * x)
 
 let cleanup = () => {}
 
@@ -62,29 +73,54 @@ onMounted(async () => {
     dotPos = dots.value.map((d) => centre(d, box))
     charPos = chars.map((c) => centre(c, box))
   }
+  touch.value = window.matchMedia('(hover: none)').matches
   // Measure once the entrance has settled, so the chars are in place.
-  const measureTimer = setTimeout(measure, 1000)
+  const measureTimer = setTimeout(() => {
+    measure()
+    if (touch.value) onScroll()
+  }, 1000)
+
+  // t: 0 (unlit) .. 1 (fully lit)
+  const lightDot = (i, t, swell = 2.4) => {
+    dotSetters[i].scale(1 + swell * t)
+    dotSetters[i].opacity(0.16 + 0.84 * t)
+  }
+  const lightChar = (i, t) =>
+    gsap.to(chars[i], {
+      fontVariationSettings: `"wght" ${Math.round(500 + 300 * t)}, "opsz" 96`,
+      '--k': t,
+      '--f': t * 0.9,
+      duration: 0.45,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    })
 
   const onMove = (e) => {
     if (!charPos.length) return
     const box = hero.value.getBoundingClientRect()
     const x = e.clientX - box.left
     const y = e.clientY - box.top
-    dotPos.forEach(([dx, dy], i) => {
-      const t = Math.max(0, 1 - Math.hypot(dx - x, dy - y) / 170)
-      dotSetters[i].scale(1 + 2.4 * t)
-      dotSetters[i].opacity(0.16 + 0.84 * t)
-    })
-    charPos.forEach(([cx, cy], i) => {
-      const t = Math.max(0, 1 - Math.hypot(cx - x, cy - y) / 280)
-      gsap.to(chars[i], {
-        fontVariationSettings: `"wght" ${Math.round(500 + 300 * t)}, "opsz" 96`,
-        '--k': t,
-        '--f': t * 0.9,
-        duration: 0.45,
-        ease: 'power2.out',
-        overwrite: 'auto'
-      })
+    dotPos.forEach(([dx, dy], i) => lightDot(i, Math.max(0, 1 - Math.hypot(dx - x, dy - y) / 170)))
+    charPos.forEach(([cx, cy], i) => lightChar(i, Math.max(0, 1 - Math.hypot(cx - x, cy - y) / 280)))
+  }
+
+  // Touch: light by vertical distance to the fixed band, recomputed per frame
+  // while scrolling.
+  let frame = 0
+  const onScroll = () => {
+    if (frame || !charPos.length) return
+    frame = requestAnimationFrame(() => {
+      frame = 0
+      const box = hero.value.getBoundingClientRect()
+      const bandY = innerHeight * BAND_AT - box.top // band centre, in hero coordinates
+      const lit = (y) => smooth(Math.max(0, 1 - Math.abs(y - bandY) / BAND_REACH))
+      dotPos.forEach(([, dy], i) => lightDot(i, lit(dy), 1.6))
+      charPos.forEach(([, cy], i) => lightChar(i, lit(cy)))
+      // Fade the strip out once the hero has scrolled up past it.
+      const left = Math.min(1, Math.max(0, (box.bottom - innerHeight * BAND_AT) / 160))
+      band.value.style.opacity = String(left)
+      // Pin it in px: mobile browsers resize the viewport as the URL bar hides.
+      band.value.style.top = `${innerHeight * BAND_AT}px`
     })
   }
   const onLeave = () => {
@@ -95,12 +131,18 @@ onMounted(async () => {
     gsap.to(chars, { fontVariationSettings: '"wght" 500, "opsz" 96', '--k': 0, '--f': 0, duration: 0.6, overwrite: 'auto' })
   }
 
-  hero.value.addEventListener('pointermove', onMove)
-  hero.value.addEventListener('pointerleave', onLeave)
+  if (touch.value) {
+    window.addEventListener('scroll', onScroll, { passive: true })
+  } else {
+    hero.value.addEventListener('pointermove', onMove)
+    hero.value.addEventListener('pointerleave', onLeave)
+  }
   window.addEventListener('resize', measure)
 
   cleanup = () => {
     clearTimeout(measureTimer)
+    cancelAnimationFrame(frame)
+    window.removeEventListener('scroll', onScroll)
     hero.value?.removeEventListener('pointermove', onMove)
     hero.value?.removeEventListener('pointerleave', onLeave)
     window.removeEventListener('resize', measure)
@@ -119,6 +161,34 @@ onBeforeUnmount(() => cleanup())
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+/* The light strip: fixed to the viewport, soft at both edges, only on touch
+   screens. Scrolling moves the page under it. */
+.light-band {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 26vh;
+  height: 260px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(255, 178, 122, 0.05) 30%,
+      rgba(255, 178, 122, 0.11) 50%,
+      rgba(255, 178, 122, 0.05) 70%,
+      transparent 100%
+    );
+  transition: opacity 0.3s linear;
+}
+
+.hero.touch .light-band {
+  display: block;
 }
 
 .dots {
