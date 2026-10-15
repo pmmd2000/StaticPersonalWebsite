@@ -69,6 +69,7 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
+import { sendContact } from '../api.js'
 
 const props = defineProps({
   visible: {
@@ -115,41 +116,16 @@ async function handleSubmit() {
   statusMessage.value = ''
   
   try {
-    const response = await fetch('/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        message: form.message
-      })
-    })
-    
-    const data = await response.json()
-    
-    if (response.ok) {
-      statusType.value = 'success'
-      statusMessage.value = 'Message sent successfully! I\'ll get back to you soon.'
-      
-      // Clear form after success
-      form.name = ''
-      form.email = ''
-      form.message = ''
-      
-      // Close dialog after delay
-      setTimeout(() => {
-        closeDialog()
-      }, 2000)
-    } else {
-      statusType.value = 'error'
-      statusMessage.value = data.error || 'Something went wrong. Please try again.'
-    }
+    await sendContact({ ...form })
+    statusType.value = 'success'
+    statusMessage.value = "Message sent! I'll get back to you soon."
+    form.name = ''
+    form.email = ''
+    form.message = ''
+    setTimeout(closeDialog, 2000)
   } catch (error) {
-    console.error('Contact form error:', error)
     statusType.value = 'error'
-    statusMessage.value = 'Network error. Please check your connection and try again.'
+    statusMessage.value = error.status ? error.message : 'Network error. Please check your connection and try again.'
   } finally {
     isSubmitting.value = false
   }

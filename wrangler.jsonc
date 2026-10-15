@@ -1,16 +1,36 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "static-personal-website",
-  "main": "src/worker.js",
-  "compatibility_date": "2026-02-03",
+  "main": "src/worker/index.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Everything else is the Vue SPA, served straight from the asset store.
+    "run_worker_first": [
+      "/api/*",
+      "/mcp",
+      "/mcp/*",
+      "/authorize",
+      "/oauth/*",
+      "/.well-known/*"
+    ]
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "contact-submissions",
-      "database_id": "41115234-5aec-4b9a-8788-e39021305b92"
+      "database_id": "41115234-5aec-4b9a-8788-e39021305b92",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // OAuth clients, grants and tokens (hashed) for the MCP server.
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_KV",
+      "id": "3b82dbe143874d0dbac1bd9d18c9b2c9"
     }
   ],
   "observability": {
