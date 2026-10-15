@@ -146,6 +146,11 @@ const number = (i) => String(i + 1).padStart(2, '0')
   font-size: 0.95rem;
   line-height: 1.55;
   color: var(--muted);
+  /* the full text lives on /hobbies; cards stay a teaser */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card:hover {
