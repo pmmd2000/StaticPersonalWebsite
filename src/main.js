@@ -12,7 +12,19 @@ const router = createRouter({
         { path: '/admin', component: () => import('./pages/AdminPage.vue'), meta: { title: 'Admin' } },
         { path: '/:pathMatch(.*)*', redirect: '/' }
     ],
-    scrollBehavior: (to, from, saved) => saved || { top: 0 }
+    scrollBehavior(to, from, saved) {
+        if (saved) return saved
+        if (!to.hash) return { top: 0 }
+        // Hobby anchors render after their fetch, so wait briefly for the target.
+        return new Promise((resolve) => {
+            let tries = 0
+            const look = () => {
+                if (document.querySelector(to.hash) || ++tries > 40) resolve({ el: to.hash, behavior: 'smooth' })
+                else setTimeout(look, 50)
+            }
+            look()
+        })
+    }
 })
 
 router.afterEach((to) => {

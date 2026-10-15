@@ -1,29 +1,36 @@
 <template>
-  <main>
-    <div class="container page-header">
-      <RouterLink to="/" class="back-link">← Parham Monfared</RouterLink>
-    </div>
-    <section class="section">
-      <div class="container">
-        <header class="section-head">
-          <div>
-            <p class="eyebrow">Reading list</p>
-            <h1 class="section-title">Tech news I liked</h1>
-          </div>
-        </header>
-        <NewsList v-bind="news" variant="full" />
-      </div>
+  <main class="container">
+    <SiteHeader />
+    <section class="page-intro">
+      <h1 ref="title" class="page-title">Tech news I liked</h1>
     </section>
+    <div class="list">
+      <NewsList v-bind="news" variant="full" />
+    </div>
     <SiteFooter />
   </main>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { getNews } from '../api.js'
+import { scrambleIn } from '../motion.js'
 import { useContent } from '../useContent.js'
+import SiteHeader from '../components/SiteHeader.vue'
 import NewsList from '../components/NewsList.vue'
 import SiteFooter from '../components/SiteFooter.vue'
 
 const news = reactive(useContent(() => getNews()))
+const title = ref(null)
+onMounted(() => scrambleIn(title.value))
 </script>
+
+<style scoped>
+.list {
+  padding-bottom: 96px;
+}
+
+.list :deep(.empty) {
+  margin-top: 56px;
+}
+</style>

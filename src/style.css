@@ -1,38 +1,48 @@
-/* Scaffold theme — placeholder until the final design lands. Everything
-   visual hangs off these tokens so a redesign is mostly a token swap. */
+/* Design tokens. Colors, type and spacing come from the "Parham Monfared —
+   Website" design canvas; everything visual hangs off these. */
 :root {
-    --bg: #07070a;
-    --bg-raised: #0f0f14;
-    --line: rgba(255, 255, 255, 0.08);
-    --line-strong: rgba(255, 255, 255, 0.16);
-    --fg: #eceaf2;
-    --muted: #9a98a8;
-    --accent: #c8344a;
-    --accent-2: #6b5cff;
-    --radius: 16px;
-    --gutter: clamp(16px, 4vw, 40px);
-    --max: 1120px;
-    --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --bg: #0b0d0c;
+    --panel: #121614;
+    --line: #1e2421;
+    --line-strong: #2a322e;
+    --fg: #f2f1ec;
+    --muted: #9aa39e;
+    --dim: #7d8681;
+    --faint: #3a4440;
+    --stroke: #8a938e;
+    --accent: #ffb27a;
+    --accent-ink: #1a120b;
+    --accent-wash: rgba(255, 178, 122, 0.08);
+    --green: #8ee3cf;
+    --danger: #ff8f8f;
+
+    --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-body: 'Geist', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+    --max: 1240px;
+    --gutter: clamp(16px, 4vw, 48px);
 }
 
 * {
     box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
 body {
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font: 400 16px/1.6 var(--font);
+    font: 400 16px/1.5 var(--font-body);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
 a {
-    color: inherit;
+    color: var(--fg);
+}
+
+a:hover {
+    color: var(--accent);
 }
 
 img {
@@ -40,120 +50,215 @@ img {
     display: block;
 }
 
+button {
+    font: inherit;
+}
+
 .container {
-    width: 100%;
     max-width: var(--max);
     margin: 0 auto;
     padding: 0 var(--gutter);
 }
 
-/* ── Section scaffolding ───────────────────────────── */
-.section {
-    padding: clamp(48px, 8vh, 96px) 0;
+.mono {
+    font-family: var(--font-mono);
 }
 
+.dot {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+}
+
+/* ── Section heads ────────────────────────────────── */
 .section-head {
     display: flex;
-    align-items: baseline;
+    align-items: flex-end;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 16px;
-    margin-bottom: 24px;
-}
-
-.eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 0 0 6px;
+    margin-bottom: 36px;
 }
 
 .section-title {
-    font-size: clamp(24px, 3vw, 32px);
-    font-weight: 700;
     margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+    letter-spacing: -0.02em;
+}
+
+.page-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.6rem, 7vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+}
+
+.page-intro {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--line);
 }
 
 .more-link {
-    flex-shrink: 0;
-    font-size: 14px;
-    color: var(--muted);
-    text-decoration: none;
-    border: 1px solid var(--line-strong);
-    padding: 6px 14px;
-    border-radius: 999px;
-    transition: color 0.2s, border-color 0.2s;
-}
-
-.more-link:hover {
-    color: var(--fg);
-    border-color: var(--fg);
-}
-
-.empty {
-    color: var(--muted);
-    border: 1px dashed var(--line-strong);
-    border-radius: var(--radius);
-    padding: 24px;
-    text-align: center;
-}
-
-/* ── Page header (sub-pages) ───────────────────────── */
-.page-header {
-    padding: 28px 0 0;
-}
-
-.back-link {
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.back-link:hover {
-    color: var(--fg);
-}
-
-/* ── Buttons ───────────────────────────────────────── */
-.btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 18px;
-    border-radius: 999px;
-    border: 1px solid var(--line-strong);
-    background: rgba(255, 255, 255, 0.03);
+    min-height: 44px;
     color: var(--fg);
-    font: 500 15px var(--font);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: gap 0.25s ease, color 0.2s ease;
+}
+
+.more-link:hover {
+    gap: 14px;
+    color: var(--accent);
+}
+
+.empty {
+    margin: 0;
+    padding: 32px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 20px;
+    color: var(--dim);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* ── Buttons / pills ──────────────────────────────── */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 22px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: rgba(18, 22, 20, 0.7);
+    color: var(--fg);
+    font: 500 1rem var(--font-body);
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    transition: border-color 0.25s ease, background-color 0.25s ease, color 0.25s ease;
 }
 
-.btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: var(--fg);
-    transform: translateY(-1px);
+.pill:hover {
+    border-color: var(--accent);
+    background: var(--accent-wash);
+    color: var(--accent);
 }
 
-.btn.primary {
+.pill.primary {
+    border-color: var(--accent);
     background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+}
+
+.pill.primary:hover {
+    background: #ffc296;
+    color: var(--accent-ink);
+}
+
+.pill.danger:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: rgba(255, 143, 143, 0.08);
+}
+
+.pill:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.arrow {
+    display: inline-block;
+    transition: transform 0.25s ease;
+}
+
+.pill:hover .arrow {
+    transform: translate(2px, -2px);
+}
+
+/* ── Forms (contact dialog, admin) ────────────────── */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    color: var(--fg);
+    font: inherit;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    outline: none;
     border-color: var(--accent);
 }
 
-.btn.primary:hover {
-    background: #d9415a;
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
 }
 
-.btn.danger {
-    color: #ff7b8a;
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    color: var(--muted);
 }
 
-.btn img {
+.form-check input {
     width: 18px;
     height: 18px;
+    accent-color: var(--accent);
 }
 
-/* ── Contact dialog ────────────────────────────────── */
+.status-message {
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
+
+.status-message.success {
+    background: rgba(142, 227, 207, 0.1);
+    color: var(--green);
+}
+
+.status-message.error {
+    background: rgba(255, 143, 143, 0.1);
+    color: var(--danger);
+}
+
+/* ── Contact dialog ───────────────────────────────── */
 .dialog-overlay {
     position: fixed;
     inset: 0;
@@ -162,7 +267,7 @@ img {
     align-items: center;
     justify-content: center;
     padding: 16px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(5, 6, 6, 0.72);
     backdrop-filter: blur(6px);
     opacity: 0;
     visibility: hidden;
@@ -176,10 +281,10 @@ img {
 
 .dialog {
     width: 100%;
-    max-width: 460px;
-    background: var(--bg-raised);
+    max-width: 480px;
+    background: var(--panel);
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: 24px;
     padding: 28px;
     transform: translateY(12px);
     transition: transform 0.25s;
@@ -193,74 +298,48 @@ img {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .dialog-title {
     margin: 0;
-    font-size: 22px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.8rem;
+    letter-spacing: -0.02em;
 }
 
 .dialog-close {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
     background: none;
-    border: 0;
     color: var(--muted);
-    font-size: 28px;
+    font-size: 22px;
     line-height: 1;
     cursor: pointer;
 }
 
 .dialog-close:hover {
-    color: var(--fg);
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
 .contact-form,
 .stack {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.form-label {
-    font-size: 13px;
-    color: var(--muted);
-}
-
-.form-input,
-.form-textarea {
-    width: 100%;
-    padding: 10px 12px;
-    background: #0b0b10;
-    border: 1px solid var(--line-strong);
-    border-radius: 10px;
-    color: var(--fg);
-    font: inherit;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
-.form-textarea {
-    min-height: 120px;
-    resize: vertical;
+    gap: 16px;
 }
 
 .submit-button {
-    padding: 12px;
+    min-height: 48px;
     border: 0;
-    border-radius: 10px;
+    border-radius: 999px;
     background: var(--accent);
-    color: #fff;
-    font: 500 15px var(--font);
+    color: var(--accent-ink);
+    font: 600 1rem var(--font-body);
     cursor: pointer;
 }
 
@@ -269,27 +348,11 @@ img {
     cursor: default;
 }
 
-.status-message {
-    font-size: 14px;
-    padding: 10px 12px;
-    border-radius: 10px;
-}
-
-.status-message.success {
-    background: rgba(70, 200, 120, 0.12);
-    color: #7be0a4;
-}
-
-.status-message.error {
-    background: rgba(255, 90, 110, 0.12);
-    color: #ff8f9c;
-}
-
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-        animation: none !important;
         transition: none !important;
+        animation: none !important;
     }
 }

@@ -1,13 +1,11 @@
 <template>
   <footer class="footer">
-    <div class="container footer-inner">
-      <span>© {{ year }} Parham Monfared</span>
-      <nav>
-        <RouterLink to="/news">News</RouterLink>
-        <RouterLink to="/hobbies">Hobbies</RouterLink>
-        <a href="#" @click.prevent="openContact">Contact</a>
-      </nav>
-    </div>
+    <span>© {{ year }} Parham Monfared</span>
+    <nav aria-label="Footer">
+      <RouterLink to="/news">News</RouterLink>
+      <RouterLink to="/hobbies">Hobbies</RouterLink>
+      <a href="#" @click.prevent="openContact">Contact</a>
+    </nav>
   </footer>
 </template>
 
@@ -20,29 +18,32 @@ const year = new Date().getFullYear()
 
 <style scoped>
 .footer {
-  border-top: 1px solid var(--line);
-  padding: 28px 0 40px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.footer-inner {
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
+  padding: 28px 0 40px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--dim);
 }
 
 nav {
   display: flex;
-  gap: 18px;
+  gap: 20px;
 }
 
 a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
   text-decoration: none;
 }
 
 a:hover {
-  color: var(--fg);
+  color: var(--accent);
 }
 </style>

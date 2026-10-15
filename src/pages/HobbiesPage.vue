@@ -1,29 +1,30 @@
 <template>
-  <main>
-    <div class="container page-header">
-      <RouterLink to="/" class="back-link">← Parham Monfared</RouterLink>
-    </div>
-    <section class="section">
-      <div class="container">
-        <header class="section-head">
-          <div>
-            <p class="eyebrow">Off the clock</p>
-            <h1 class="section-title">Hobbies</h1>
-          </div>
-        </header>
-        <HobbyList v-bind="hobbies" />
-      </div>
+  <main class="container">
+    <SiteHeader />
+    <section class="page-intro">
+      <h1 ref="title" class="page-title">Hobbies</h1>
     </section>
+    <HobbyList v-bind="hobbies" variant="full" />
     <SiteFooter />
   </main>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { getHobbies } from '../api.js'
+import { scrambleIn } from '../motion.js'
 import { useContent } from '../useContent.js'
+import SiteHeader from '../components/SiteHeader.vue'
 import HobbyList from '../components/HobbyList.vue'
 import SiteFooter from '../components/SiteFooter.vue'
 
 const hobbies = reactive(useContent(getHobbies))
+const title = ref(null)
+onMounted(() => scrambleIn(title.value))
 </script>
+
+<style scoped>
+:deep(.empty) {
+  margin: 56px 0 96px;
+}
+</style>
