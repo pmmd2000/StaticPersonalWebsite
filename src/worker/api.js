@@ -26,9 +26,6 @@ export async function handleApi(request, env) {
             const items = await content.list(env.DB, 'hobbies')
             return json(items, { headers: { 'Cache-Control': 'public, max-age=60' } })
         }
-        if (parts[1] === 'contact' && parts.length === 2 && method === 'POST') {
-            return handleContact(request, env)
-        }
 
         // ── Admin ───────────────────────────────────────────────
         if (parts[1] === 'admin') {
@@ -79,18 +76,4 @@ async function handleAdmin(request, env, parts, method) {
         return (await content.remove(env.DB, kind, id)) ? json({ ok: true }) : error(404, 'Not found')
     }
     return error(405, 'Method not allowed')
-}
-
-async function handleContact(request, env) {
-    const { name, email, message } = await request.json().catch(() => ({}))
-    if (!name?.trim()) return error(400, 'Name is required')
-    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return error(400, 'Please provide a valid email address')
-    }
-    if (!message?.trim()) return error(400, 'Message is required')
-
-    const result = await env.DB.prepare('INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)')
-        .bind(name.trim(), email.trim(), message.trim())
-        .run()
-    return json({ success: true, id: result.meta.last_row_id })
 }

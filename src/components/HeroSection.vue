@@ -18,18 +18,16 @@
         LinkedIn <span class="arrow" aria-hidden="true">↗</span>
       </a>
       <span class="dot" aria-hidden="true"></span>
-      <button class="pill primary" type="button" @click="openContact">
-        Contact me <span class="arrow" aria-hidden="true">→</span>
-      </button>
+      <ContactPill />
     </div>
   </section>
 </template>
 
 <script setup>
-import { inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { gsap, prefersReducedMotion, SplitText } from '../motion.js'
+import ContactPill from './ContactPill.vue'
 
-const openContact = inject('openContact')
 
 // 32 columns x 14 rows of dots behind the name; they swell near the cursor.
 const DOTS = 448

@@ -4,15 +4,12 @@
     <nav aria-label="Footer">
       <RouterLink to="/news">News</RouterLink>
       <RouterLink to="/hobbies">Hobbies &amp; Projects</RouterLink>
-      <a href="#" @click.prevent="openContact">Contact</a>
+      <a href="mailto:info@parhammonfared.com">Contact</a>
     </nav>
   </footer>
 </template>
 
 <script setup>
-import { inject } from 'vue'
-
-const openContact = inject('openContact')
 const year = new Date().getFullYear()
 </script>
 
