@@ -11,7 +11,6 @@ async function request(path, options = {}) {
 
 export const getNews = (limit) => request(`/api/news${limit ? `?limit=${limit}` : ''}`)
 export const getHobbies = () => request('/api/hobbies')
-export const sendContact = (body) => request('/api/contact', { method: 'POST', body })
 
 export const admin = {
     session: () => request('/api/admin/session'),
