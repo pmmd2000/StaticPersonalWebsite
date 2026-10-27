@@ -7,18 +7,49 @@
       <span v-for="i in DOTS" :key="i" ref="dots" class="grid-dot"></span>
     </div>
 
-    <h1 ref="name" class="name">Parham<br />Monfared</h1>
+    <div class="hero-grid">
+      <div class="hero-text">
+        <h1 ref="name" class="name">Parham<br />Monfared</h1>
 
-    <div class="links">
-      <a class="pill" href="https://github.com/pmmd2000" target="_blank" rel="noopener">
-        GitHub <span class="arrow" aria-hidden="true">↗</span>
-      </a>
-      <span class="dot" aria-hidden="true"></span>
-      <a class="pill" href="https://www.linkedin.com/in/parham-monfared" target="_blank" rel="noopener">
-        LinkedIn <span class="arrow" aria-hidden="true">↗</span>
-      </a>
-      <span class="dot" aria-hidden="true"></span>
-      <ContactPill />
+        <div class="links">
+          <a class="pill" href="https://github.com/pmmd2000" target="_blank" rel="me noopener">
+            GitHub <span class="arrow" aria-hidden="true">↗</span>
+          </a>
+          <span class="dot" aria-hidden="true"></span>
+          <a class="pill" href="https://www.linkedin.com/in/parham-monfared" target="_blank" rel="me noopener">
+            LinkedIn <span class="arrow" aria-hidden="true">↗</span>
+          </a>
+          <span class="dot" aria-hidden="true"></span>
+          <a class="pill" href="https://orcid.org/0009-0008-1231-3406" target="_blank" rel="me noopener noreferrer" aria-label="ORCID iD 0009-0008-1231-3406">
+            <svg class="orcid" viewBox="0 0 256 256" aria-hidden="true">
+              <circle cx="128" cy="128" r="128" fill="#A6CE39" />
+              <path
+                fill="#fff"
+                d="M86.3 186.2H70.9V79.1h15.4v107.1zM108.9 79.1h41.6c39.6 0 57 28.3 57 53.6 0 27.5-21.5 53.6-56.8 53.6h-41.8V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7C191.7 111.2 178 93 148 93h-23.7v79.4zM88.7 56.8c0 5.5-4.5 10.1-10.1 10.1s-10.1-4.6-10.1-10.1c0-5.6 4.5-10.1 10.1-10.1s10.1 4.6 10.1 10.1z"
+              />
+            </svg>
+            ORCID <span class="arrow" aria-hidden="true">↗</span>
+          </a>
+          <span class="dot" aria-hidden="true"></span>
+          <ContactPill />
+        </div>
+      </div>
+
+      <figure class="portrait">
+        <span class="portrait-ring" aria-hidden="true"></span>
+        <picture>
+          <source type="image/webp" srcset="/images/parham-320.webp 320w, /images/parham-640.webp 640w" sizes="(max-width: 720px) 112px, 300px" />
+          <img
+            src="/images/parham-640.jpg"
+            srcset="/images/parham-320.jpg 320w, /images/parham-640.jpg 640w"
+            sizes="(max-width: 720px) 112px, 300px"
+            width="640"
+            height="640"
+            alt="Parham Monfared"
+            fetchpriority="high"
+          />
+        </picture>
+      </figure>
     </div>
   </section>
 </template>
@@ -154,6 +185,8 @@ onBeforeUnmount(() => cleanup())
 <style scoped>
 .hero {
   position: relative;
+  /* the portrait's rotating ring has a box that grows as it turns */
+  overflow-x: clip;
   min-height: 560px;
   padding: 56px 0 72px;
   display: flex;
@@ -226,6 +259,73 @@ onBeforeUnmount(() => cleanup())
   -webkit-text-stroke-color: color-mix(in srgb, var(--accent) calc(var(--k, 0) * 100%), var(--stroke));
 }
 
+.hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(24px, 4vw, 64px);
+}
+
+.hero-text {
+  min-width: 0;
+}
+
+/* Portrait: circle with a slowly turning dashed accent ring around it. */
+.portrait {
+  position: relative;
+  /* room for the ring, which sits 14px outside the photo */
+  margin: 0 16px 0 0;
+  width: clamp(220px, 24vw, 300px);
+  aspect-ratio: 1;
+}
+
+.portrait picture,
+.portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.portrait img {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 30px 80px -30px rgba(255, 140, 60, 0.45);
+}
+
+.portrait-ring {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 178, 122, 0.45);
+  animation: orbit 40s linear infinite;
+}
+
+.portrait-ring::after {
+  /* a small mint "node" riding the ring */
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -4px;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+}
+
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+
+.orcid {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .links {
   position: relative;
   display: flex;
@@ -233,6 +333,21 @@ onBeforeUnmount(() => cleanup())
   align-items: center;
   gap: 12px;
   margin-top: 44px;
+}
+
+@media (max-width: 720px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* phones: a small portrait above the name */
+  .portrait {
+    order: -1;
+    width: 112px;
+    margin-left: 14px;
+  }
+  .portrait-ring {
+    inset: -9px;
+  }
 }
 
 @media (max-width: 560px) {
