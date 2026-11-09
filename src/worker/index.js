@@ -12,12 +12,27 @@ import { mcpHandler } from './mcp.js'
 // Everything else is the Vue SPA in ./dist.
 
 const defaultHandler = {
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
         const { pathname } = new URL(request.url)
         if (pathname === '/authorize') return handleAuthorize(request, env)
-        if (pathname.startsWith('/api/')) return handleApi(request, env)
+        if (pathname.startsWith('/api/')) return handleApi(request, env, ctx)
+        if (isPrivatePage(pathname)) return privatePage(request, env)
         return env.ASSETS.fetch(request)
     }
+}
+
+// /brief and /admin are SPA routes like any other, but must never be indexed
+// or cached anywhere.
+const isPrivatePage = (pathname) => /^\/(brief|admin)(\/|$)/.test(pathname)
+
+async function privatePage(request, env) {
+    const res = await env.ASSETS.fetch(request)
+    const headers = new Headers(res.headers)
+    headers.set('Cache-Control', 'no-store')
+    headers.set('X-Robots-Tag', 'noindex, nofollow')
+    headers.set('Referrer-Policy', 'no-referrer')
+    headers.set('X-Frame-Options', 'DENY')
+    return new Response(res.body, { status: res.status, headers })
 }
 
 // OAuth binds every token to a canonical resource URL. It is taken from the

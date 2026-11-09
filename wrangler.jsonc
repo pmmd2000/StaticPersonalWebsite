@@ -15,7 +15,10 @@
       "/mcp/*",
       "/authorize",
       "/oauth/*",
-      "/.well-known/*"
+      "/.well-known/*",
+      "/brief",
+      "/brief/*",
+      "/admin"
     ]
   },
   "d1_databases": [

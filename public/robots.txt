@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /brief
+Disallow: /admin
+Disallow: /api/
+Disallow: /authorize
+Disallow: /mcp

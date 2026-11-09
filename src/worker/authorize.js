@@ -1,5 +1,5 @@
 import { AuthorizationError, CimdFetchError } from '@cloudflare/workers-oauth-provider'
-import { checkPassword, createSessionCookie, hasSession } from './session.js'
+import { attemptLogin, createSessionCookie, hasSession } from './session.js'
 
 // The /authorize endpoint: sign the owner in (same password as /admin), then
 // ask whether the MCP client may manage the site.
@@ -96,7 +96,9 @@ export async function handleAuthorize(request, env) {
             const form = await request.formData()
 
             if (form.get('action') === 'login') {
-                if (!(await checkPassword(env, form.get('password')))) return loginPage('Wrong password.')
+                const attempt = await attemptLogin(env, request, form.get('password'))
+                if (attempt.locked) return loginPage(`Too many attempts. Try again in ${Math.ceil(attempt.locked / 60)} min.`)
+                if (!attempt.ok) return loginPage('Wrong password.')
                 // Back to the same /authorize URL (query intact), now with a session.
                 return new Response(null, {
                     status: 303,
