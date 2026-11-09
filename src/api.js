@@ -1,7 +1,15 @@
+// CSRF token for owner-only writes; set by session() and login().
+let csrf = null
+
 async function request(path, options = {}) {
+    const write = options.method && options.method !== 'GET'
     const res = await fetch(path, {
         ...options,
-        headers: { 'Content-Type': 'application/json', ...options.headers },
+        headers: {
+            'Content-Type': 'application/json',
+            ...(write && csrf ? { 'X-CSRF-Token': csrf } : {}),
+            ...options.headers
+        },
         body: options.body === undefined ? undefined : JSON.stringify(options.body)
     })
     const data = await res.json().catch(() => ({}))
@@ -9,18 +17,29 @@ async function request(path, options = {}) {
     return data
 }
 
+const remember = (data) => {
+    csrf = data?.csrf || null
+    return data
+}
+
 export const getNews = (limit) => request(`/api/news${limit ? `?limit=${limit}` : ''}`)
 export const getHobbies = () => request('/api/hobbies')
 
 export const admin = {
-    session: () => request('/api/admin/session'),
-    login: (password) => request('/api/admin/login', { method: 'POST', body: { password } }),
+    session: () => request('/api/admin/session').then(remember),
+    login: (password) => request('/api/admin/login', { method: 'POST', body: { password } }).then(remember),
     logout: () => request('/api/admin/logout', { method: 'POST' }),
     list: (kind) => request(`/api/admin/${kind}`),
     create: (kind, body) => request(`/api/admin/${kind}`, { method: 'POST', body }),
     update: (kind, id, body) => request(`/api/admin/${kind}/${id}`, { method: 'PUT', body }),
     remove: (kind, id) => request(`/api/admin/${kind}/${id}`, { method: 'DELETE' }),
     contacts: () => request('/api/admin/contacts')
+}
+
+export const briefApi = {
+    get: (date) => request(`/api/brief${date ? `?date=${encodeURIComponent(date)}` : ''}`),
+    history: () => request('/api/brief/history'),
+    save: (changes) => request('/api/brief/actions', { method: 'POST', body: { changes } })
 }
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']

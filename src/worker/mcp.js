@@ -2,6 +2,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { z } from 'zod'
 import * as content from './content.js'
+import * as brief from './brief.js'
+import { briefInputs } from './brief-schema.js'
 
 const httpUrl = z.string().url().describe('http(s) URL')
 
@@ -33,7 +35,7 @@ async function run(fn) {
     try {
         return await fn()
     } catch (err) {
-        if (err instanceof content.ValidationError) return failure(err.message)
+        if (err instanceof content.ValidationError || err instanceof brief.BriefError) return failure(err.message)
         throw err
     }
 }
@@ -43,8 +45,13 @@ function buildServer(env) {
         { name: 'parhammonfared.com', version: '1.0.0' },
         {
             instructions:
-                "Manages the content of Parham Monfared's personal website: the 'tech news I liked' list " +
-                '(newest first; the home page shows the latest three) and the hobbies list. ' +
+                "Manages Parham Monfared's personal website: the news list (newest first; the home page shows " +
+                'the latest three), the Hobbies & Projects list, and his private Morning Brief. ' +
+                "Morning Brief loop: publish_brief pushes the day's run and items (upserted by item_key; Parham's " +
+                'status, note and reschedule are never overwritten and are returned, so closed items can be dropped). ' +
+                'get_item_states checks earlier decisions, e.g. key_prefix "chat:" with statuses ["wont_do","done"] so ' +
+                'declined chat promises are not resurfaced. list_pending_actions claims the decisions he saved on ' +
+                '/brief; apply each in the real tool (TickTick, Google Calendar, ...) and call report_action_result. ' +
                 'Changes are live immediately.'
         }
     )
@@ -98,6 +105,67 @@ function buildServer(env) {
             annotations: { readOnlyHint: true }
         },
         async ({ limit }) => result(await content.listContacts(env.DB, { limit }))
+    )
+
+    // Morning Brief
+    server.registerTool(
+        'publish_brief',
+        {
+            description:
+                "Store today's Morning Brief: creates a run and upserts every item by item_key. Only descriptive " +
+                'fields are updated on existing items; status, user_note and rescheduled_to set by Parham are kept. ' +
+                'Returns each pushed item with its stored status and note.',
+            inputSchema: briefInputs.publish
+        },
+        async ({ run: r, items }) => run(async () => result(await brief.publishBrief(env.DB, r, items)))
+    )
+    server.registerTool(
+        'get_item_states',
+        {
+            description:
+                "Read Parham's stored decisions on brief items. Filter by exact item_keys, a key_prefix (e.g. " +
+                '"chat:" for every chat commitment), statuses, and/or since (status changed at or after).',
+            inputSchema: briefInputs.states,
+            annotations: { readOnlyHint: true }
+        },
+        async (args) => run(async () => result({ items: await brief.getItemStates(env.DB, args) }))
+    )
+    server.registerTool(
+        'list_pending_actions',
+        {
+            description:
+                'Atomically claim the actions Parham saved on /brief (oldest first) and return them with their item, ' +
+                'including source_ref. Report each with report_action_result; claims not reported within 30 minutes ' +
+                'go back to pending.',
+            inputSchema: briefInputs.pending
+        },
+        async ({ limit }) => run(async () => result({ actions: await brief.claimPending(env.DB, limit) }))
+    )
+    server.registerTool(
+        'report_action_result',
+        {
+            description:
+                'Report what happened when applying a claimed action: applied, failed (say why in message) or ' +
+                'skipped. Shown to Parham on the brief page.',
+            inputSchema: briefInputs.report
+        },
+        async ({ action_id, state, message }) =>
+            run(async () => result(await brief.reportResult(env.DB, action_id, state, message)))
+    )
+    server.registerTool(
+        'get_brief',
+        {
+            description:
+                'Read a stored brief: the run for date (YYYY-MM-DD, Europe/London; latest run if omitted) and its ' +
+                'items with current status, note and latest action states.',
+            inputSchema: briefInputs.get,
+            annotations: { readOnlyHint: true }
+        },
+        async ({ date }) =>
+            run(async () => {
+                const data = await brief.getBrief(env.DB, date)
+                return data ? result(data) : failure(date ? `No brief stored for ${date}` : 'No brief stored yet')
+            })
     )
 
     return server

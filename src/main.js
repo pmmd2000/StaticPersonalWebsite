@@ -9,7 +9,18 @@ const router = createRouter({
         { path: '/', component: () => import('./pages/HomePage.vue'), meta: { title: 'Parham Monfared' } },
         { path: '/news', component: () => import('./pages/NewsPage.vue'), meta: { title: 'Latest news I follow' } },
         { path: '/hobbies', component: () => import('./pages/HobbiesPage.vue'), meta: { title: 'Hobbies & Projects' } },
-        { path: '/admin', component: () => import('./pages/AdminPage.vue'), meta: { title: 'Admin' } },
+        { path: '/admin', component: () => import('./pages/AdminPage.vue'), meta: { title: 'Admin', private: true } },
+        { path: '/brief', component: () => import('./pages/BriefPage.vue'), meta: { title: 'Morning Brief', private: true } },
+        {
+            path: '/brief/history',
+            component: () => import('./pages/BriefHistoryPage.vue'),
+            meta: { title: 'Brief history', private: true }
+        },
+        {
+            path: '/brief/:date(\\d{4}-\\d{2}-\\d{2})',
+            component: () => import('./pages/BriefPage.vue'),
+            meta: { title: 'Morning Brief', private: true }
+        },
         { path: '/:pathMatch(.*)*', redirect: '/' }
     ],
     scrollBehavior(to, from, saved) {
@@ -29,6 +40,15 @@ const router = createRouter({
 
 router.afterEach((to) => {
     document.title = to.path === '/' ? to.meta.title : `${to.meta.title} · Parham Monfared`
+    // Private pages also get X-Robots-Tag from the Worker; this covers client-side navigation.
+    let robots = document.querySelector('meta[name="robots"]')
+    if (to.meta.private) {
+        if (!robots) robots = Object.assign(document.createElement('meta'), { name: 'robots' })
+        robots.content = 'noindex, nofollow'
+        document.head.appendChild(robots)
+    } else {
+        robots?.remove()
+    }
 })
 
 createApp(App).use(router).mount('#app')
