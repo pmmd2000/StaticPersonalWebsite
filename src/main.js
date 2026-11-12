@@ -9,6 +9,7 @@ const router = createRouter({
         { path: '/', component: () => import('./pages/HomePage.vue'), meta: { title: 'Parham Monfared' } },
         { path: '/news', component: () => import('./pages/NewsPage.vue'), meta: { title: 'Latest news I follow' } },
         { path: '/hobbies', component: () => import('./pages/HobbiesPage.vue'), meta: { title: 'Hobbies & Projects' } },
+        { path: '/privacy', component: () => import('./pages/PrivacyPage.vue'), meta: { title: 'Privacy policy' } },
         { path: '/admin', component: () => import('./pages/AdminPage.vue'), meta: { title: 'Admin', private: true } },
         { path: '/brief', component: () => import('./pages/BriefPage.vue'), meta: { title: 'Morning Brief', private: true } },
         {

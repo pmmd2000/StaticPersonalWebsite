@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- "PM" monogram with the site's glowing green dot. Colours from src/style.css. -->
+  <defs>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="12" />
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#0b0d0c" />
+  <g transform="translate(-26 -11)">
+    <g fill="none" stroke="#f2f1ec" stroke-width="34" stroke-linejoin="round">
+      <path d="M120 392V142H178a56 56 0 0 1 0 112H120" />
+      <path d="M288 392V142L344 262L400 142V392" />
+    </g>
+    <circle cx="442" cy="375" r="19" fill="#8ee3cf" filter="url(#glow)" opacity="0.9" />
+    <circle cx="442" cy="375" r="19" fill="#8ee3cf" />
+  </g>
+</svg>

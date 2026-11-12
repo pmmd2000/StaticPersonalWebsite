@@ -5,6 +5,7 @@
       <RouterLink to="/news">News</RouterLink>
       <RouterLink to="/hobbies">Hobbies &amp; Projects</RouterLink>
       <a href="mailto:info@parhammonfared.com">Contact</a>
+      <RouterLink to="/privacy">Privacy</RouterLink>
     </nav>
   </footer>
 </template>
@@ -29,7 +30,8 @@ const year = new Date().getFullYear()
 
 nav {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  column-gap: 20px;
 }
 
 a {
