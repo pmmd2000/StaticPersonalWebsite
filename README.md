@@ -35,6 +35,13 @@ Workers Builds settings (Cloudflare dashboard → Worker → Settings → Build)
 | Deploy command | `npm run deploy` (builds, applies pending D1 migrations, deploys) |
 | Non-production branch deploy command | `npx wrangler versions upload` (default; previews never run migrations) |
 
+**Sign in with Google** (unlocks the same pages; `src/worker/google.js`):
+
+- **The Google side:** the OAuth client "parhammonfared.com site" in the Google Cloud project `parhammonfared`, with `<origin>/api/admin/google/callback` registered as a redirect URI for each origin (apex, www and `http://localhost:8787` are registered). Its client ID and secret are in Bitwarden as "pahrammonfared.com/brief Google Cloud OAuth".
+- **`GOOGLE_CLIENT_ID`** is set under `vars` in `wrangler.jsonc`.
+- **Secrets:** `npx wrangler secret put GOOGLE_CLIENT_SECRET`, plus `npx wrangler secret put OWNER_EMAILS` (a comma-separated list of the Google accounts allowed in).
+- **Off by default:** Google sign-in stays off until all three are set.
+
 Sign-in password (unlocks `/admin`, `/brief` and the MCP OAuth sign-in): store it as a hash with `npm run hash-password`, then `npx wrangler secret put ADMIN_PASSWORD_HASH`. The older plain `ADMIN_PASSWORD` secret still works until it is deleted. The current password is in Bitwarden as "parhammonfared.com admin". Other optional secrets are listed in [docs/morning-brief.md](docs/morning-brief.md).
 
 ## Local development

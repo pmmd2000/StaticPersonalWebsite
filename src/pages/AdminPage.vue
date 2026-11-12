@@ -10,9 +10,12 @@
     <!-- Sign in -->
     <form v-else-if="!authed" class="card stack login" @submit.prevent="login">
       <h1>Admin</h1>
-      <input v-model="password" type="password" class="form-input" placeholder="Password" autocomplete="current-password" required autofocus />
-      <p v-if="loginError" class="status-message error">{{ loginError }}</p>
-      <button class="submit-button">Sign in</button>
+      <a v-if="methods.google" class="submit-button google" :href="googleUrl">Sign in with Google</a>
+      <template v-if="methods.password">
+        <input v-model="password" type="password" class="form-input" placeholder="Password" autocomplete="current-password" required :autofocus="!methods.google" />
+        <p v-if="loginError" class="status-message error">{{ loginError }}</p>
+        <button class="submit-button">{{ methods.google ? 'Sign in with password' : 'Sign in' }}</button>
+      </template>
     </form>
 
     <template v-else>
@@ -105,6 +108,8 @@ const tabs = [
 ]
 
 const authed = ref(null)
+const methods = ref({ password: true, google: false })
+const googleUrl = admin.googleSignInUrl('/admin')
 const password = ref('')
 const loginError = ref('')
 const tab = ref('news')
@@ -118,7 +123,9 @@ const current = computed(() => SCHEMAS[tab.value])
 const mcpUrl = `${location.origin}/mcp`
 
 onMounted(async () => {
-  authed.value = (await admin.session().catch(() => ({}))).authenticated === true
+  const session = await admin.session().catch(() => ({}))
+  authed.value = session.authenticated === true
+  if (session.methods) methods.value = session.methods
   if (authed.value) load()
 })
 
@@ -214,6 +221,13 @@ async function remove(row) {
 .login {
   max-width: 380px;
   margin: 10vh auto 0;
+}
+
+.login .google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .muted {

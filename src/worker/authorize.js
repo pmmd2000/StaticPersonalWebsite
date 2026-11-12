@@ -1,5 +1,6 @@
 import { AuthorizationError, CimdFetchError } from '@cloudflare/workers-oauth-provider'
-import { attemptLogin, createSessionCookie, hasSession } from './session.js'
+import { attemptLogin, createSessionCookie, hasSession, passwordEnabled } from './session.js'
+import { googleEnabled, googleStartPath } from './google.js'
 
 // The /authorize endpoint: sign the owner in (same password as /admin), then
 // ask whether the MCP client may manage the site.
@@ -32,23 +33,33 @@ function page(title, body, headers = new Headers(), status = 200) {
   .row { display:flex; gap:10px; margin-top:18px }
   button { flex:1; padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--fg); font:inherit; cursor:pointer }
   button.primary { background:var(--accent); border-color:var(--accent) }
+  a.google { display:block; padding:10px 14px; border-radius:10px; border:1px solid var(--line); color:var(--fg); text-align:center; text-decoration:none; margin-bottom:14px }
 </style></head>
 <body><main class="card">${body}</main></body></html>`,
         { status, headers }
     )
 }
 
-function loginPage(error) {
+// Google sign-in comes back to this same /authorize URL, query intact.
+function loginPage(request, env, error) {
+    const { pathname, search } = new URL(request.url)
+    const google = googleEnabled(env)
+        ? `<a class="google" href="${escape(googleStartPath(pathname + search))}">Sign in with Google</a>`
+        : ''
+    const password = passwordEnabled(env)
+        ? `<form method="post">
+  <input type="hidden" name="action" value="login">
+  <input type="password" name="password" placeholder="Admin password" autocomplete="current-password" required${google ? '' : ' autofocus'}>
+  <div class="row"><button class="primary">Continue</button></div>
+</form>`
+        : ''
     return page(
         'Sign in',
         `<h1>Sign in to authorize</h1>
 <p>An app wants to manage this website's content. Sign in as the site owner to continue.</p>
 ${error ? `<p class="err">${escape(error)}</p>` : ''}
-<form method="post">
-  <input type="hidden" name="action" value="login">
-  <input type="password" name="password" placeholder="Admin password" autocomplete="current-password" required autofocus>
-  <div class="row"><button class="primary">Continue</button></div>
-</form>`,
+${google}
+${password}`,
         new Headers(),
         error ? 401 : 200
     )
@@ -85,7 +96,7 @@ export async function handleAuthorize(request, env) {
     const oauth = env.OAUTH_PROVIDER
     try {
         if (request.method === 'GET') {
-            if (!(await hasSession(request, env))) return loginPage()
+            if (!(await hasSession(request, env))) return loginPage(request, env)
             const authRequest = await oauth.parseAuthRequest(request)
             const details = await oauth.describeConsent(authRequest)
             const consent = await oauth.beginConsent(authRequest)
@@ -97,8 +108,8 @@ export async function handleAuthorize(request, env) {
 
             if (form.get('action') === 'login') {
                 const attempt = await attemptLogin(env, request, form.get('password'))
-                if (attempt.locked) return loginPage(`Too many attempts. Try again in ${Math.ceil(attempt.locked / 60)} min.`)
-                if (!attempt.ok) return loginPage('Wrong password.')
+                if (attempt.locked) return loginPage(request, env, `Too many attempts. Try again in ${Math.ceil(attempt.locked / 60)} min.`)
+                if (!attempt.ok) return loginPage(request, env, 'Wrong password.')
                 // Back to the same /authorize URL (query intact), now with a session.
                 return new Response(null, {
                     status: 303,
@@ -106,7 +117,7 @@ export async function handleAuthorize(request, env) {
                 })
             }
 
-            if (!(await hasSession(request, env))) return loginPage('Your session expired, sign in again.')
+            if (!(await hasSession(request, env))) return loginPage(request, env, 'Your session expired, sign in again.')
             const handle = String(form.get('handle') || '')
             if (form.get('decision') !== 'approve') {
                 const denied = await oauth.denyConsent(request, handle)

@@ -5,12 +5,17 @@
     <form v-else-if="!authed" class="login" @submit.prevent="login">
       <h1>Morning Brief</h1>
       <p class="muted">Private. Sign in to continue.</p>
-      <label class="field">
-        <span>Password</span>
-        <input v-model="password" type="password" autocomplete="current-password" required autofocus />
-      </label>
-      <p v-if="loginError" class="error" role="alert">{{ loginError }}</p>
-      <button class="btn primary" :disabled="busy">{{ busy ? 'Signing in…' : 'Sign in' }}</button>
+      <a v-if="methods.google" class="btn primary" :href="googleUrl">Sign in with Google</a>
+      <template v-if="methods.password">
+        <label class="field">
+          <span>Password</span>
+          <input v-model="password" type="password" autocomplete="current-password" required :autofocus="!methods.google" />
+        </label>
+        <p v-if="loginError" class="error" role="alert">{{ loginError }}</p>
+        <button class="btn" :class="{ primary: !methods.google }" :disabled="busy">
+          {{ busy ? 'Signing in…' : methods.google ? 'Sign in with password' : 'Sign in' }}
+        </button>
+      </template>
     </form>
 
     <slot v-else />
@@ -24,9 +29,12 @@ import { admin } from '../../api.js'
 const emit = defineEmits(['ready'])
 
 const authed = ref(null)
+const methods = ref({ password: true, google: false })
 const password = ref('')
 const loginError = ref('')
 const busy = ref(false)
+// Google sends you back to the page you started on.
+const googleUrl = admin.googleSignInUrl(location.pathname + location.search)
 
 // The brief has its own look (IBM Plex, light/dark) separate from the site.
 const FONT_ID = 'brief-fonts'
@@ -45,7 +53,9 @@ onMounted(async () => {
   document.body.classList.add('brief-body')
 
   try {
-    authed.value = (await admin.session()).authenticated === true
+    const session = await admin.session()
+    authed.value = session.authenticated === true
+    if (session.methods) methods.value = session.methods
   } catch {
     authed.value = false
   }
@@ -162,6 +172,10 @@ body.brief-body {
 
 .brief .btn:hover {
   border-color: var(--b-faint);
+}
+
+.brief a.btn {
+  text-decoration: none;
 }
 
 .brief .btn.primary {

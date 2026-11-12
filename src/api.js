@@ -29,6 +29,8 @@ export const admin = {
     session: () => request('/api/admin/session').then(remember),
     login: (password) => request('/api/admin/login', { method: 'POST', body: { password } }).then(remember),
     logout: () => request('/api/admin/logout', { method: 'POST' }),
+    // Full-page navigation, not fetch: it goes to Google and back.
+    googleSignInUrl: (returnTo) => `/api/admin/google/start?return_to=${encodeURIComponent(returnTo)}`,
     list: (kind) => request(`/api/admin/${kind}`),
     create: (kind, body) => request(`/api/admin/${kind}`, { method: 'POST', body }),
     update: (kind, id, body) => request(`/api/admin/${kind}/${id}`, { method: 'PUT', body }),

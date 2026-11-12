@@ -36,6 +36,11 @@
       "id": "3b82dbe143874d0dbac1bd9d18c9b2c9"
     }
   ],
+  // Sign in with Google (src/worker/google.js). The client ID is public; the
+  // client secret and OWNER_EMAILS (the allowlist) are Worker secrets.
+  "vars": {
+    "GOOGLE_CLIENT_ID": "575383377291-9gnr9n2b924advqf72akdjr9uo3dn7js.apps.googleusercontent.com"
+  },
   "observability": {
     "enabled": true
   }
