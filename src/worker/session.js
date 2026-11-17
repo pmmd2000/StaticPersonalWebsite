@@ -7,7 +7,10 @@
 // also need a CSRF token derived from the session.
 
 const COOKIE = '__Host-admin_session'
-const SESSION_TTL_SECONDS = 60 * 60 * 12
+// 30 days. A session is one signed cookie on the owner's own devices, with no
+// server-side record to expire; changing the password or SESSION_SECRET still
+// signs every device out at once.
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30
 
 const encoder = new TextEncoder()
 
@@ -34,6 +37,21 @@ function toHex(buffer) {
 function fromHex(hex) {
     if (!/^[0-9a-f]*$/.test(hex) || hex.length % 2) return new Uint8Array()
     return new Uint8Array(hex.match(/../g).map((h) => parseInt(h, 16)))
+}
+
+// HMAC over a labelled string with the session key, for short-lived signed
+// values that have to survive a hop between browsers (the app hand-off in
+// google.js). Labels must never be all digits: that is the session format.
+export async function signValue(env, text) {
+    return toHex(await crypto.subtle.sign('HMAC', await hmacKey(env), encoder.encode(text)))
+}
+
+export async function verifyValue(env, text, signature) {
+    try {
+        return await crypto.subtle.verify('HMAC', await hmacKey(env), fromHex(String(signature)), encoder.encode(text))
+    } catch {
+        return false
+    }
 }
 
 function fromBase64(b64) {

@@ -6,14 +6,32 @@
 // (secrets; OWNER_EMAILS is a comma-separated allowlist). The OAuth client is
 // "parhammonfared.com site" in the Google Cloud project `parhammonfared`, with
 // <origin>/api/admin/google/callback registered for each origin it serves.
+//
+// ParhamApp (the Android app) shows /brief in a WebView, and Google refuses to
+// run OAuth inside one. So the app opens /start in a real browser tab with
+// ?app_challenge=<S256 of a verifier it keeps>; the callback then hands back a
+// two-minute signed code on parhamapp://auth/google instead of a session, and
+// the WebView trades code + verifier for the session at /app-session. The code
+// alone is useless to anything else that catches that redirect.
 
-import { createSession, loginLockedFor, recordLoginFailure, recordLoginSuccess } from './session.js'
+import {
+    createSession,
+    loginLockedFor,
+    recordLoginFailure,
+    recordLoginSuccess,
+    signValue,
+    verifyValue
+} from './session.js'
 
 const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const ISSUERS = new Set(['https://accounts.google.com', 'accounts.google.com'])
 const COOKIE = '__Host-google_oauth'
 const FLOW_TTL_SECONDS = 600
+const APP_REDIRECT = 'parhamapp://auth/google'
+const APP_CODE_TTL_SECONDS = 120
+// A base64url SHA-256 (the challenge) or a base64url 32-byte verifier.
+const PKCE_VALUE = /^[A-Za-z0-9_-]{43}$/
 
 const encoder = new TextEncoder()
 
@@ -42,6 +60,16 @@ const randomToken = () => toBase64Url(crypto.getRandomValues(new Uint8Array(32))
 function safeReturn(value) {
     const path = typeof value === 'string' ? value : ''
     return path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\') ? path : '/brief'
+}
+
+const s256 = async (text) => toBase64Url(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(text))))
+
+const appCodeLabel = (expires, challenge) => `app-handoff:${expires}:${challenge}`
+
+function appRedirect(params, cookies = []) {
+    const headers = new Headers({ Location: `${APP_REDIRECT}?${new URLSearchParams(params)}`, 'Cache-Control': 'no-store' })
+    for (const cookie of cookies) headers.append('Set-Cookie', cookie)
+    return new Response(null, { status: 302, headers })
 }
 
 const redirectUri = (request) => `${new URL(request.url).origin}/api/admin/google/callback`
@@ -104,16 +132,22 @@ function finish(target, cookies, error) {
     )
 }
 
-// GET /api/admin/google/start?return_to=/brief
+// GET /api/admin/google/start?return_to=/brief[&app_challenge=…]
 export async function googleStart(request, env) {
     if (!googleEnabled(env)) return new Response('Google sign-in is off', { status: 404 })
+    const params = new URL(request.url).searchParams
     const flow = {
         state: randomToken(),
         nonce: randomToken(),
         verifier: randomToken(),
-        returnTo: safeReturn(new URL(request.url).searchParams.get('return_to'))
+        returnTo: safeReturn(params.get('return_to'))
     }
-    const challenge = toBase64Url(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(flow.verifier))))
+    const appChallenge = params.get('app_challenge')
+    if (appChallenge !== null) {
+        if (!PKCE_VALUE.test(appChallenge)) return new Response('Bad app_challenge', { status: 400 })
+        flow.app = appChallenge
+    }
+    const challenge = await s256(flow.verifier)
     const auth = new URL(AUTH_URL)
     auth.search = new URLSearchParams({
         client_id: env.GOOGLE_CLIENT_ID,
@@ -138,7 +172,9 @@ export async function googleCallback(request, env) {
     const params = new URL(request.url).searchParams
     const flow = readFlow(request)
     const back = flow?.returnTo || '/brief'
-    const fail = (message) => finish(back, [clearFlowCookie()], message)
+    // A flow the app started ends back in the app, whichever way it goes.
+    const fail = (message) =>
+        flow?.app ? appRedirect({ error: message }, [clearFlowCookie()]) : finish(back, [clearFlowCookie()], message)
 
     if (!flow || params.get('state') !== flow.state) return fail('That sign-in link expired. Try again.')
     if (params.get('error') || !params.get('code')) return fail('Google sign-in was cancelled.')
@@ -180,6 +216,38 @@ export async function googleCallback(request, env) {
     }
 
     await recordLoginSuccess(env.DB, request)
+    if (flow.app) {
+        // No session for this browser: the app's WebView collects it.
+        const expires = Math.floor(Date.now() / 1000) + APP_CODE_TTL_SECONDS
+        const code = `${expires}.${await signValue(env, appCodeLabel(expires, flow.app))}`
+        return appRedirect({ code }, [clearFlowCookie()])
+    }
     const session = await createSession(env)
     return finish(flow.returnTo, [clearFlowCookie(), session.cookie])
+}
+
+// GET /api/admin/google/app-session?code=…&verifier=…[&return_to=/brief]
+// Loaded by the app's WebView, so the session cookie lands in its cookie jar.
+export async function googleAppSession(request, env) {
+    if (!googleEnabled(env)) return new Response('Google sign-in is off', { status: 404 })
+    const params = new URL(request.url).searchParams
+    const back = safeReturn(params.get('return_to'))
+
+    const locked = await loginLockedFor(env.DB, request)
+    if (locked > 0) return finish(back, [], `Too many attempts. Try again in ${Math.ceil(locked / 60)} min.`)
+
+    const [expires = '', signature = ''] = String(params.get('code') || '').split('.')
+    const verifier = params.get('verifier') || ''
+    const valid =
+        /^\d+$/.test(expires) &&
+        Number(expires) > Date.now() / 1000 &&
+        PKCE_VALUE.test(verifier) &&
+        (await verifyValue(env, appCodeLabel(expires, await s256(verifier)), signature))
+    if (!valid) {
+        await recordLoginFailure(env.DB, request)
+        return finish(back, [], 'That sign-in link expired. Try again.')
+    }
+
+    const session = await createSession(env)
+    return finish(back, [session.cookie])
 }

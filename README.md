@@ -41,6 +41,7 @@ Workers Builds settings (Cloudflare dashboard → Worker → Settings → Build)
 - **`GOOGLE_CLIENT_ID`** is set under `vars` in `wrangler.jsonc`.
 - **Secrets:** `npx wrangler secret put GOOGLE_CLIENT_SECRET`, plus `npx wrangler secret put OWNER_EMAILS` (a comma-separated list of the Google accounts allowed in).
 - **Off by default:** Google sign-in stays off until all three are set.
+- **From ParhamApp:** the Android app shows `/brief` in a WebView, where Google refuses to run OAuth. It opens `/api/admin/google/start?app_challenge=…` in a browser tab instead; the callback returns a two-minute signed code on `parhamapp://auth/google`, and the WebView swaps code + verifier for the session at `/api/admin/google/app-session`. Nothing extra to configure.
 
 Sign-in password (unlocks `/admin`, `/brief` and the MCP OAuth sign-in): store it as a hash with `npm run hash-password`, then `npx wrangler secret put ADMIN_PASSWORD_HASH`. The older plain `ADMIN_PASSWORD` secret still works until it is deleted. The current password is in Bitwarden as "parhammonfared.com admin". Other optional secrets are listed in [docs/morning-brief.md](docs/morning-brief.md).
 
