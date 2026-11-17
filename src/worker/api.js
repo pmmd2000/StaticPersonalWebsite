@@ -1,7 +1,7 @@
 import * as content from './content.js'
 import * as brief from './brief.js'
 import { saveSchema } from './brief-schema.js'
-import { googleCallback, googleEnabled, googleStart } from './google.js'
+import { googleAppSession, googleCallback, googleEnabled, googleStart } from './google.js'
 import {
     attemptLogin,
     checkCsrf,
@@ -80,6 +80,7 @@ async function handleAdmin(request, env, parts, method) {
     if (parts[0] === 'google' && method === 'GET') {
         if (parts[1] === 'start') return googleStart(request, env)
         if (parts[1] === 'callback') return googleCallback(request, env)
+        if (parts[1] === 'app-session') return googleAppSession(request, env)
     }
     if (parts[0] === 'logout' && method === 'POST') {
         return json({ ok: true }, { headers: { 'Set-Cookie': clearSessionCookie() } })
